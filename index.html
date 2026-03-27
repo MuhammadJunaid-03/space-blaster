@@ -9,7 +9,7 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{width:100%;height:100%;overflow:hidden;background:#000;touch-action:none;overscroll-behavior:none;user-select:none;-webkit-user-select:none;font-family:'Segoe UI',system-ui,sans-serif}
-canvas{display:block;position:absolute}
+canvas{display:block;position:absolute;z-index:1}
 .ov{position:fixed;top:0;left:0;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:10;background:rgba(5,5,20,0.92);color:#fff;text-align:center;transition:opacity .3s}
 .ov.h{opacity:0;pointer-events:none}
 .ov h1{font-size:clamp(28px,7vw,48px);font-weight:900;letter-spacing:2px;background:linear-gradient(135deg,#00d4ff,#7b2ff7,#ff2d95);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;filter:drop-shadow(0 0 25px rgba(0,212,255,.5));margin-bottom:4px}
@@ -26,7 +26,7 @@ canvas{display:block;position:absolute}
 .b:active{background:rgba(255,255,255,.2);transform:scale(.95)}
 .br{background:linear-gradient(135deg,#f7971e,#ffd200);border:none;color:#000;font-weight:700;padding:12px 32px;font-size:15px;box-shadow:0 0 15px rgba(255,210,0,.3)}
 .sub{font-size:clamp(11px,2.8vw,14px);color:rgba(255,255,255,.4);margin-top:3px}
-#pauseBtn{position:fixed;top:max(env(safe-area-inset-top),10px);right:10px;z-index:5;width:40px;height:40px;border:none;background:rgba(255,255,255,.08);border-radius:50%;color:#fff;font-size:18px;cursor:pointer;display:none;align-items:center;justify-content:center}
+#pauseBtn{position:fixed;top:max(env(safe-area-inset-top),10px);right:10px;z-index:15;width:44px;height:44px;border:none;background:rgba(255,255,255,.15);border-radius:50%;color:#fff;font-size:20px;cursor:pointer;display:none;align-items:center;justify-content:center;touch-action:manipulation}
 #adOv{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.92);z-index:100;display:none;align-items:center;justify-content:center;color:#fff;font-size:18px;flex-direction:column}
 /* UPGRADE PICKER */
 #upgPick{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(5,5,25,.95);z-index:20;display:none;flex-direction:column;align-items:center;justify-content:center;color:#fff}
@@ -492,7 +492,7 @@ class Game{
     const menu=document.getElementById('menuScr'),pau=document.getElementById('pauseScr'),ov=document.getElementById('overScr');
     document.getElementById('startBtn').onclick=()=>{this.aud.unlock();this.startGame();};
     menu.addEventListener('touchstart',e=>{if(e.target.id==='startBtn'){e.preventDefault();this.aud.unlock();this.startGame();}},{passive:false});
-    document.getElementById('pauseBtn').onclick=e=>{e.stopPropagation();this.pause();};
+    const pb=document.getElementById('pauseBtn');pb.onclick=e=>{e.stopPropagation();this.pause();};pb.addEventListener('touchstart',e=>{e.stopPropagation();e.preventDefault();this.pause();},{passive:false});
     document.getElementById('soundBtn').onclick=e=>{e.stopPropagation();this.aud.on=!this.aud.on;e.target.textContent='SOUND: '+(this.aud.on?'ON':'OFF');};
     document.getElementById('resumeBtn').onclick=()=>this.resume();
     document.getElementById('pauseMenuBtn').onclick=e=>{e.stopPropagation();this.sdk.gpStop();this.goMenu();};
