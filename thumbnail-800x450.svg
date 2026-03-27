@@ -1,0 +1,147 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450" viewBox="0 0 800 450">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0a0a2e"/>
+      <stop offset="50%" stop-color="#120a3a"/>
+      <stop offset="100%" stop-color="#1a0a3e"/>
+    </linearGradient>
+    <linearGradient id="ship" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#00d4ff"/>
+      <stop offset="100%" stop-color="#0088cc"/>
+    </linearGradient>
+    <linearGradient id="title" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#00d4ff"/>
+      <stop offset="50%" stop-color="#7b2ff7"/>
+      <stop offset="100%" stop-color="#ff2d95"/>
+    </linearGradient>
+    <linearGradient id="boss" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#dd3355"/>
+      <stop offset="100%" stop-color="#aa1133"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="glow2">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="glow3">
+      <feGaussianBlur stdDeviation="12" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="450" fill="url(#bg)"/>
+
+  <!-- Stars -->
+  <circle cx="30" cy="40" r="1.5" fill="#fff" opacity=".6"/>
+  <circle cx="100" cy="20" r="1" fill="#fff" opacity=".4"/>
+  <circle cx="180" cy="60" r="1.8" fill="#fff" opacity=".5"/>
+  <circle cx="280" cy="30" r="1" fill="#fff" opacity=".7"/>
+  <circle cx="420" cy="50" r="1.5" fill="#fff" opacity=".4"/>
+  <circle cx="550" cy="25" r="1.2" fill="#fff" opacity=".6"/>
+  <circle cx="650" cy="70" r="1" fill="#fff" opacity=".5"/>
+  <circle cx="750" cy="35" r="1.8" fill="#fff" opacity=".4"/>
+  <circle cx="50" cy="130" r="1" fill="#0df" opacity=".3"/>
+  <circle cx="770" cy="120" r="1.5" fill="#a5f" opacity=".3"/>
+  <circle cx="350" cy="400" r="1" fill="#fff" opacity=".3"/>
+  <circle cx="680" cy="380" r="1.5" fill="#fff" opacity=".4"/>
+  <circle cx="120" cy="420" r="1" fill="#fff" opacity=".5"/>
+  <circle cx="500" cy="430" r="1.2" fill="#fff" opacity=".3"/>
+
+  <!-- Boss (top center, large) -->
+  <g filter="url(#glow2)" transform="translate(400,90)">
+    <polygon points="0,44 -44,10 -38,-34 -14,-44 0,-36 14,-44 38,-34 44,10" fill="url(#boss)"/>
+    <circle cx="0" cy="0" r="12" fill="#fff" opacity=".3"/>
+  </g>
+
+  <!-- Boss bullets (spread pattern) -->
+  <circle cx="370" cy="130" r="4" fill="#f45" opacity=".7" filter="url(#glow)"/>
+  <circle cx="400" cy="138" r="4" fill="#f45" opacity=".7" filter="url(#glow)"/>
+  <circle cx="430" cy="130" r="4" fill="#f45" opacity=".7" filter="url(#glow)"/>
+  <circle cx="355" cy="145" r="3.5" fill="#f45" opacity=".5" filter="url(#glow)"/>
+  <circle cx="445" cy="145" r="3.5" fill="#f45" opacity=".5" filter="url(#glow)"/>
+
+  <!-- Enemy swarm left -->
+  <g filter="url(#glow)" transform="translate(150,120)">
+    <polygon points="0,-14 -12,9 0,14 12,9" fill="#f45"/>
+  </g>
+  <g filter="url(#glow)" transform="translate(100,160)">
+    <polygon points="0,-14 -12,9 0,14 12,9" fill="#f82"/>
+  </g>
+  <g filter="url(#glow)" transform="translate(190,170)">
+    <polygon points="0,-12 -10,7 0,12 10,7" fill="#f99"/>
+  </g>
+
+  <!-- Enemy swarm right -->
+  <g filter="url(#glow)" transform="translate(620,130)">
+    <polygon points="0,-16 -14,10 -5,8 0,16 5,8 14,10" fill="#a4f"/>
+  </g>
+  <g filter="url(#glow)" transform="translate(680,165)">
+    <polygon points="0,-14 -12,9 0,14 12,9" fill="#0f8"/>
+  </g>
+  <g filter="url(#glow)" transform="translate(580,175)">
+    <polygon points="0,-12 -10,7 0,12 10,7" fill="#ff0"/>
+  </g>
+
+  <!-- Player bullets -->
+  <rect x="397" y="210" width="6" height="18" rx="3" fill="#0ef" opacity=".9" filter="url(#glow)"/>
+  <rect x="397" y="185" width="6" height="18" rx="3" fill="#0ef" opacity=".7" filter="url(#glow)"/>
+  <rect x="397" y="160" width="6" height="18" rx="3" fill="#0ef" opacity=".5" filter="url(#glow)"/>
+  <!-- Side gun bullets -->
+  <rect x="375" y="225" width="5" height="14" rx="2.5" fill="#0ef" opacity=".6" filter="url(#glow)"/>
+  <rect x="420" y="225" width="5" height="14" rx="2.5" fill="#0ef" opacity=".6" filter="url(#glow)"/>
+
+  <!-- Player ship -->
+  <g filter="url(#glow2)" transform="translate(400,290)">
+    <polygon points="0,-38 -28,18 -20,14 -16,34 0,24 16,34 20,14 28,18" fill="url(#ship)"/>
+    <ellipse cx="0" cy="30" rx="9" ry="16" fill="#0af" opacity=".4"/>
+    <ellipse cx="0" cy="28" rx="5" ry="10" fill="#fff" opacity=".3"/>
+    <ellipse cx="0" cy="-8" rx="6" ry="9" fill="#fff" opacity=".25"/>
+  </g>
+
+  <!-- Orbiter -->
+  <circle cx="355" cy="285" r="5" fill="#0ef" opacity=".6" filter="url(#glow)"/>
+  <circle cx="445" cy="295" r="5" fill="#0ef" opacity=".6" filter="url(#glow)"/>
+
+  <!-- Explosion particles -->
+  <circle cx="150" cy="145" r="4" fill="#ff0" opacity=".5" filter="url(#glow)"/>
+  <circle cx="160" cy="135" r="3" fill="#f82" opacity=".4"/>
+  <circle cx="140" cy="140" r="2.5" fill="#f45" opacity=".5"/>
+  <circle cx="690" cy="155" r="3.5" fill="#0f8" opacity=".5" filter="url(#glow)"/>
+
+  <!-- Upgrade icons floating (left side) -->
+  <g transform="translate(55,260)" opacity=".6">
+    <rect x="-20" y="-20" width="40" height="40" rx="8" fill="rgba(255,255,255,0.06)" stroke="rgba(0,200,255,0.3)" stroke-width="1"/>
+    <text x="0" y="8" text-anchor="middle" font-size="22">🚀</text>
+  </g>
+  <g transform="translate(55,320)" opacity=".5">
+    <rect x="-20" y="-20" width="40" height="40" rx="8" fill="rgba(255,255,255,0.06)" stroke="rgba(170,85,255,0.3)" stroke-width="1"/>
+    <text x="0" y="8" text-anchor="middle" font-size="22">🎯</text>
+  </g>
+
+  <!-- Upgrade icons (right side) -->
+  <g transform="translate(745,260)" opacity=".6">
+    <rect x="-20" y="-20" width="40" height="40" rx="8" fill="rgba(255,255,255,0.06)" stroke="rgba(0,200,255,0.3)" stroke-width="1"/>
+    <text x="0" y="8" text-anchor="middle" font-size="22">🛡️</text>
+  </g>
+  <g transform="translate(745,320)" opacity=".5">
+    <rect x="-20" y="-20" width="40" height="40" rx="8" fill="rgba(255,255,255,0.06)" stroke="rgba(170,85,255,0.3)" stroke-width="1"/>
+    <text x="0" y="8" text-anchor="middle" font-size="22">💎</text>
+  </g>
+
+  <!-- Title -->
+  <text x="400" y="385" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-weight="900" font-size="56" letter-spacing="4" fill="url(#title)" filter="url(#glow2)">SPACE BLASTER</text>
+  <text x="400" y="415" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-weight="400" font-size="16" letter-spacing="8" fill="rgba(255,255,255,0.45)">EVOLVED</text>
+
+  <!-- HUD-like elements -->
+  <text x="30" y="30" font-family="'Segoe UI',system-ui,sans-serif" font-weight="700" font-size="14" fill="#0df" opacity=".5">WAVE 12</text>
+  <text x="770" y="30" text-anchor="end" font-family="'Segoe UI',system-ui,sans-serif" font-weight="700" font-size="14" fill="#fff" opacity=".5">48,250</text>
+
+  <!-- Boss HP bar -->
+  <rect x="200" y="60" width="400" height="6" rx="3" fill="rgba(255,255,255,0.1)"/>
+  <rect x="200" y="60" width="280" height="6" rx="3" fill="#d35"/>
+  <text x="400" y="56" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-weight="700" font-size="9" fill="rgba(255,255,255,0.5)">DESTROYER</text>
+</svg>

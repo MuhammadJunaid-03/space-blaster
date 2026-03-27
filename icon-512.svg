@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0a0a2e"/>
+      <stop offset="100%" stop-color="#1a0a3e"/>
+    </linearGradient>
+    <linearGradient id="ship" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#00d4ff"/>
+      <stop offset="100%" stop-color="#0088cc"/>
+    </linearGradient>
+    <linearGradient id="title" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#00d4ff"/>
+      <stop offset="50%" stop-color="#7b2ff7"/>
+      <stop offset="100%" stop-color="#ff2d95"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="glow2">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="512" height="512" rx="64" fill="url(#bg)"/>
+
+  <!-- Stars -->
+  <circle cx="45" cy="60" r="1.5" fill="#fff" opacity=".7"/>
+  <circle cx="120" cy="30" r="1" fill="#fff" opacity=".5"/>
+  <circle cx="200" cy="80" r="1.8" fill="#fff" opacity=".6"/>
+  <circle cx="350" cy="45" r="1.2" fill="#fff" opacity=".8"/>
+  <circle cx="450" cy="90" r="1" fill="#fff" opacity=".5"/>
+  <circle cx="470" cy="150" r="1.5" fill="#fff" opacity=".6"/>
+  <circle cx="60" cy="180" r="1" fill="#fff" opacity=".4"/>
+  <circle cx="400" cy="200" r="1.8" fill="#fff" opacity=".7"/>
+  <circle cx="80" cy="300" r="1.2" fill="#fff" opacity=".5"/>
+  <circle cx="430" cy="320" r="1" fill="#fff" opacity=".6"/>
+  <circle cx="150" cy="400" r="1.5" fill="#fff" opacity=".4"/>
+  <circle cx="380" cy="420" r="1.8" fill="#fff" opacity=".5"/>
+  <circle cx="50" cy="450" r="1" fill="#fff" opacity=".7"/>
+  <circle cx="460" cy="460" r="1.2" fill="#fff" opacity=".6"/>
+  <circle cx="300" cy="50" r="2" fill="#0df" opacity=".3"/>
+  <circle cx="100" cy="130" r="1.5" fill="#a5f" opacity=".3"/>
+
+  <!-- Enemy bullets (red/orange small circles) -->
+  <circle cx="140" cy="220" r="4" fill="#f45" opacity=".8" filter="url(#glow)"/>
+  <circle cx="370" cy="260" r="4" fill="#f45" opacity=".8" filter="url(#glow)"/>
+  <circle cx="200" cy="300" r="3.5" fill="#f82" opacity=".7" filter="url(#glow)"/>
+
+  <!-- Enemy 1 - zigzag (orange, top left) -->
+  <g filter="url(#glow)" transform="translate(120,140)">
+    <polygon points="0,-16 -14,10 -5,8 0,16 5,8 14,10" fill="#f82"/>
+  </g>
+
+  <!-- Enemy 2 - tank (purple, top right) -->
+  <g filter="url(#glow)" transform="translate(380,160)">
+    <polygon points="0,-20 -18,12 -6,10 0,20 6,10 18,12" fill="#a4f"/>
+  </g>
+
+  <!-- Enemy 3 - basic (red, top center) -->
+  <g filter="url(#glow)" transform="translate(256,110)">
+    <polygon points="0,-14 -12,9 0,14 12,9" fill="#f45"/>
+  </g>
+
+  <!-- Player bullets (cyan) -->
+  <rect x="253" y="230" width="6" height="16" rx="3" fill="#0ef" opacity=".9" filter="url(#glow)"/>
+  <rect x="253" y="205" width="6" height="16" rx="3" fill="#0ef" opacity=".7" filter="url(#glow)"/>
+  <rect x="253" y="180" width="6" height="16" rx="3" fill="#0ef" opacity=".5" filter="url(#glow)"/>
+
+  <!-- Player ship (center, larger) -->
+  <g filter="url(#glow2)" transform="translate(256,310)">
+    <polygon points="0,-40 -30,20 -22,15 -18,35 0,25 18,35 22,15 30,20" fill="url(#ship)"/>
+    <!-- Engine glow -->
+    <ellipse cx="0" cy="32" rx="10" ry="18" fill="#0af" opacity=".4"/>
+    <ellipse cx="0" cy="30" rx="6" ry="12" fill="#fff" opacity=".3"/>
+    <!-- Cockpit -->
+    <ellipse cx="0" cy="-8" rx="7" ry="10" fill="#fff" opacity=".3"/>
+  </g>
+
+  <!-- Explosion particles (scattered) -->
+  <circle cx="340" cy="180" r="3" fill="#ff0" opacity=".6"/>
+  <circle cx="350" cy="170" r="2" fill="#f82" opacity=".5"/>
+  <circle cx="330" cy="175" r="2.5" fill="#f45" opacity=".4"/>
+
+  <!-- Title: SPACE BLASTER -->
+  <text x="256" y="430" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-weight="900" font-size="52" letter-spacing="3" fill="url(#title)" filter="url(#glow)">SPACE</text>
+  <text x="256" y="478" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-weight="900" font-size="40" letter-spacing="4" fill="url(#title)" filter="url(#glow)">BLASTER</text>
+  <text x="256" y="498" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-weight="400" font-size="13" letter-spacing="6" fill="rgba(255,255,255,0.4)">EVOLVED</text>
+</svg>

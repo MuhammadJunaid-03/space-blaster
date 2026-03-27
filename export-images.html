@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html><head><title>Export Game Images</title>
+<style>body{background:#222;color:#fff;font-family:system-ui;padding:20px;text-align:center}canvas{border:1px solid #444;margin:10px}a{display:inline-block;margin:8px;padding:10px 24px;background:#0af;color:#000;font-weight:700;border-radius:8px;text-decoration:none;cursor:pointer}a:hover{background:#0df}h2{margin-top:30px}</style>
+</head><body>
+<h1>Space Blaster — Export Images</h1>
+<p>Click the download buttons to save PNG files for CrazyGames submission.</p>
+
+<h2>Icon (512x512)</h2>
+<canvas id="icon" width="512" height="512"></canvas><br>
+<a id="dlIcon">Download Icon (512x512 PNG)</a>
+
+<h2>Thumbnail (800x450)</h2>
+<canvas id="thumb" width="800" height="450"></canvas><br>
+<a id="dlThumb">Download Thumbnail (800x450 PNG)</a>
+
+<script>
+function renderIcon(c){
+  const ctx=c.getContext('2d'),W=512,H=512;
+  // BG
+  const bg=ctx.createLinearGradient(0,0,W,H);bg.addColorStop(0,'#0a0a2e');bg.addColorStop(1,'#1a0a3e');
+  ctx.beginPath();ctx.moveTo(64,0);ctx.lineTo(W-64,0);ctx.quadraticCurveTo(W,0,W,64);ctx.lineTo(W,H-64);ctx.quadraticCurveTo(W,H,W-64,H);ctx.lineTo(64,H);ctx.quadraticCurveTo(0,H,0,H-64);ctx.lineTo(0,64);ctx.quadraticCurveTo(0,0,64,0);ctx.fillStyle=bg;ctx.fill();
+
+  // Stars
+  const stars=[[45,60,1.5],[120,30,1],[200,80,1.8],[350,45,1.2],[450,90,1],[470,150,1.5],[60,180,1],[400,200,1.8],[80,300,1.2],[430,320,1],[150,400,1.5],[380,420,1.8],[50,450,1],[460,460,1.2]];
+  stars.forEach(([x,y,r])=>{ctx.globalAlpha=.3+Math.random()*.4;ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();});
+  ctx.globalAlpha=1;
+
+  // Enemies
+  function drawEnemy(x,y,s,col){ctx.save();ctx.translate(x,y);ctx.shadowColor=col;ctx.shadowBlur=12;ctx.fillStyle=col;ctx.beginPath();ctx.moveTo(0,-s);ctx.lineTo(-s*.85,s*.65);ctx.lineTo(0,s);ctx.lineTo(s*.85,s*.65);ctx.closePath();ctx.fill();ctx.restore();}
+  drawEnemy(120,140,16,'#f82');drawEnemy(380,160,20,'#a4f');drawEnemy(256,110,14,'#f45');
+
+  // Enemy bullets
+  ctx.shadowColor='#f45';ctx.shadowBlur=8;ctx.fillStyle='#f45';
+  [[140,220,4],[370,260,4],[200,300,3.5]].forEach(([x,y,r])=>{ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();});
+  ctx.shadowBlur=0;
+
+  // Player bullets
+  ctx.shadowColor='#0ef';ctx.shadowBlur=10;ctx.fillStyle='#0ef';
+  [[256,230,.9],[256,205,.7],[256,180,.5]].forEach(([x,y,a])=>{ctx.globalAlpha=a;ctx.fillRect(x-3,y,6,16);});
+  ctx.globalAlpha=1;ctx.shadowBlur=0;
+
+  // Player ship
+  ctx.save();ctx.translate(256,310);ctx.shadowColor='#00d4ff';ctx.shadowBlur=16;
+  const sg=ctx.createLinearGradient(0,-40,0,35);sg.addColorStop(0,'#00d4ff');sg.addColorStop(1,'#0088cc');
+  ctx.fillStyle=sg;ctx.beginPath();ctx.moveTo(0,-40);ctx.lineTo(-30,20);ctx.lineTo(-22,15);ctx.lineTo(-18,35);ctx.lineTo(0,25);ctx.lineTo(18,35);ctx.lineTo(22,15);ctx.lineTo(30,20);ctx.closePath();ctx.fill();
+  // Engine
+  ctx.shadowBlur=0;ctx.globalAlpha=.4;ctx.fillStyle='#0af';ctx.beginPath();ctx.ellipse(0,32,10,18,0,0,Math.PI*2);ctx.fill();
+  ctx.globalAlpha=.3;ctx.fillStyle='#fff';ctx.beginPath();ctx.ellipse(0,30,6,12,0,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.ellipse(0,-8,7,10,0,0,Math.PI*2);ctx.fill();
+  ctx.globalAlpha=1;ctx.restore();
+
+  // Title
+  ctx.shadowColor='rgba(0,212,255,.6)';ctx.shadowBlur=20;
+  const tg=ctx.createLinearGradient(100,430,412,430);tg.addColorStop(0,'#00d4ff');tg.addColorStop(.5,'#7b2ff7');tg.addColorStop(1,'#ff2d95');
+  ctx.font='900 52px "Segoe UI",system-ui,sans-serif';ctx.textAlign='center';ctx.fillStyle=tg;ctx.fillText('SPACE',256,430);
+  ctx.font='900 40px "Segoe UI",system-ui,sans-serif';ctx.fillText('BLASTER',256,478);
+  ctx.shadowBlur=0;ctx.font='400 13px "Segoe UI",system-ui,sans-serif';ctx.fillStyle='rgba(255,255,255,0.4)';ctx.fillText('EVOLVED',256,498);
+}
+
+function renderThumb(c){
+  const ctx=c.getContext('2d'),W=800,H=450;
+  // BG
+  const bg=ctx.createLinearGradient(0,0,W,H);bg.addColorStop(0,'#0a0a2e');bg.addColorStop(.5,'#120a3a');bg.addColorStop(1,'#1a0a3e');
+  ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+
+  // Stars
+  const stars=[[30,40,1.5],[100,20,1],[180,60,1.8],[280,30,1],[420,50,1.5],[550,25,1.2],[650,70,1],[750,35,1.8],[350,400,1],[680,380,1.5],[120,420,1],[500,430,1.2]];
+  stars.forEach(([x,y,r])=>{ctx.globalAlpha=.3+Math.random()*.4;ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();});
+  ctx.globalAlpha=1;
+
+  // Boss
+  ctx.save();ctx.translate(400,95);ctx.shadowColor='#d35';ctx.shadowBlur=16;
+  const bg2=ctx.createLinearGradient(0,-44,0,44);bg2.addColorStop(0,'#dd3355');bg2.addColorStop(1,'#aa1133');
+  ctx.fillStyle=bg2;ctx.beginPath();ctx.moveTo(0,44);ctx.lineTo(-44,10);ctx.lineTo(-38,-34);ctx.lineTo(-14,-44);ctx.lineTo(0,-36);ctx.lineTo(14,-44);ctx.lineTo(38,-34);ctx.lineTo(44,10);ctx.closePath();ctx.fill();
+  ctx.shadowBlur=0;ctx.globalAlpha=.3;ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(0,0,12,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;ctx.restore();
+
+  // Boss HP bar
+  ctx.fillStyle='rgba(255,255,255,0.1)';ctx.fillRect(200,60,400,6);ctx.fillStyle='#d35';ctx.fillRect(200,60,280,6);
+  ctx.font='bold 9px "Segoe UI",system-ui,sans-serif';ctx.fillStyle='rgba(255,255,255,0.5)';ctx.textAlign='center';ctx.fillText('DESTROYER',400,56);
+
+  // Boss bullets
+  ctx.shadowColor='#f45';ctx.shadowBlur=8;ctx.fillStyle='#f45';
+  [[370,135,4],[400,143,4],[430,135,4],[355,150,3.5],[445,150,3.5]].forEach(([x,y,r])=>{ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();});ctx.shadowBlur=0;
+
+  // Enemies
+  function drawEnemy(x,y,s,col){ctx.save();ctx.translate(x,y);ctx.shadowColor=col;ctx.shadowBlur=10;ctx.fillStyle=col;ctx.beginPath();ctx.moveTo(0,-s);ctx.lineTo(-s*.85,s*.65);ctx.lineTo(0,s);ctx.lineTo(s*.85,s*.65);ctx.closePath();ctx.fill();ctx.restore();}
+  drawEnemy(150,120,14,'#f45');drawEnemy(100,160,14,'#f82');drawEnemy(190,170,12,'#f99');
+  drawEnemy(620,130,16,'#a4f');drawEnemy(680,165,14,'#0f8');drawEnemy(580,175,12,'#ff0');
+
+  // Particles
+  ctx.fillStyle='#ff0';ctx.globalAlpha=.5;ctx.beginPath();ctx.arc(150,145,4,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#f82';ctx.globalAlpha=.4;ctx.beginPath();ctx.arc(160,135,3,0,Math.PI*2);ctx.fill();
+  ctx.globalAlpha=1;
+
+  // Player bullets
+  ctx.shadowColor='#0ef';ctx.shadowBlur=10;ctx.fillStyle='#0ef';
+  [[400,210,.9],[400,185,.7],[400,160,.5]].forEach(([x,y,a])=>{ctx.globalAlpha=a;ctx.fillRect(x-3,y,6,18);});
+  // Side bullets
+  ctx.globalAlpha=.6;ctx.fillRect(377,225,5,14);ctx.fillRect(420,225,5,14);
+  ctx.globalAlpha=1;ctx.shadowBlur=0;
+
+  // Player ship
+  ctx.save();ctx.translate(400,290);ctx.shadowColor='#00d4ff';ctx.shadowBlur=16;
+  const sg=ctx.createLinearGradient(0,-38,0,34);sg.addColorStop(0,'#00d4ff');sg.addColorStop(1,'#0088cc');
+  ctx.fillStyle=sg;ctx.beginPath();ctx.moveTo(0,-38);ctx.lineTo(-28,18);ctx.lineTo(-20,14);ctx.lineTo(-16,34);ctx.lineTo(0,24);ctx.lineTo(16,34);ctx.lineTo(20,14);ctx.lineTo(28,18);ctx.closePath();ctx.fill();
+  ctx.shadowBlur=0;ctx.globalAlpha=.4;ctx.fillStyle='#0af';ctx.beginPath();ctx.ellipse(0,30,9,16,0,0,Math.PI*2);ctx.fill();
+  ctx.globalAlpha=.3;ctx.fillStyle='#fff';ctx.beginPath();ctx.ellipse(0,28,5,10,0,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.ellipse(0,-8,6,9,0,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;ctx.restore();
+
+  // Orbiters
+  ctx.shadowColor='#0ef';ctx.shadowBlur=8;ctx.fillStyle='#0ef';ctx.globalAlpha=.6;
+  ctx.beginPath();ctx.arc(355,285,5,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.arc(445,295,5,0,Math.PI*2);ctx.fill();
+  ctx.globalAlpha=1;ctx.shadowBlur=0;
+
+  // Upgrade boxes
+  function drawUpgBox(x,y,emoji,a){ctx.globalAlpha=a;ctx.fillStyle='rgba(255,255,255,0.06)';ctx.strokeStyle='rgba(0,200,255,0.3)';ctx.lineWidth=1;ctx.beginPath();ctx.roundRect(x-20,y-20,40,40,8);ctx.fill();ctx.stroke();ctx.font='22px sans-serif';ctx.textAlign='center';ctx.fillStyle='#fff';ctx.fillText(emoji,x,y+8);ctx.globalAlpha=1;}
+  drawUpgBox(55,260,'🚀',.6);drawUpgBox(55,320,'🎯',.5);drawUpgBox(745,260,'🛡️',.6);drawUpgBox(745,320,'💎',.5);
+
+  // HUD
+  ctx.font='bold 14px "Segoe UI",system-ui,sans-serif';ctx.textAlign='left';ctx.fillStyle='#0df';ctx.globalAlpha=.5;ctx.fillText('WAVE 12',30,30);
+  ctx.textAlign='right';ctx.fillStyle='#fff';ctx.fillText('48,250',770,30);ctx.globalAlpha=1;
+
+  // Title
+  ctx.shadowColor='rgba(0,212,255,.5)';ctx.shadowBlur=16;
+  const tg=ctx.createLinearGradient(150,380,650,380);tg.addColorStop(0,'#00d4ff');tg.addColorStop(.5,'#7b2ff7');tg.addColorStop(1,'#ff2d95');
+  ctx.font='900 56px "Segoe UI",system-ui,sans-serif';ctx.textAlign='center';ctx.fillStyle=tg;ctx.fillText('SPACE BLASTER',400,390);
+  ctx.shadowBlur=0;ctx.font='400 16px "Segoe UI",system-ui,sans-serif';ctx.fillStyle='rgba(255,255,255,0.45)';ctx.fillText('EVOLVED',400,418);
+}
+
+const ic=document.getElementById('icon');renderIcon(ic);
+const th=document.getElementById('thumb');renderThumb(th);
+
+document.getElementById('dlIcon').onclick=function(){const a=document.createElement('a');a.download='space-blaster-icon-512.png';a.href=ic.toDataURL('image/png');a.click();};
+document.getElementById('dlThumb').onclick=function(){const a=document.createElement('a');a.download='space-blaster-thumbnail-800x450.png';a.href=th.toDataURL('image/png');a.click();};
+</script>
+</body></html>
