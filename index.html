@@ -81,6 +81,11 @@ canvas{display:block;position:absolute}
   <div class="ships" id="shipList"></div>
   <h3>GAME MODE</h3>
   <div class="modes" id="modeList"></div>
+  <div style="margin-top:12px;width:80%;max-width:280px">
+    <h3 style="margin:0 0 6px">MOVE SPEED</h3>
+    <input type="range" id="spdSlider" min="50" max="200" value="100" style="width:100%;accent-color:#0ef">
+    <div style="display:flex;justify-content:space-between;font-size:11px;color:rgba(255,255,255,.5)"><span>Slow</span><span id="spdVal">100%</span><span>Fast</span></div>
+  </div>
   <p class="pulse" id="startBtn">TAP TO LAUNCH</p>
   <p id="menuHS" class="hs" style="margin-top:8px"></p>
   <p class="cred">GAME DEVELOPED BY MUHAMMAD JUNAID</p>
@@ -135,11 +140,11 @@ async load(k){if(this.ok)try{return await this.sdk.data.get(k);}catch(e){}try{re
 const W=390,H=844;
 
 const SHIPS=[
-  {id:'striker',name:'Striker',desc:'Balanced fighter',hp:3,spd:.35,fr:220,dmg:1,color:'#1ae',unlock:0,special:'none'},
-  {id:'phantom',name:'Phantom',desc:'Fast & fragile',hp:2,spd:.48,fr:180,dmg:1,color:'#a5f',unlock:500,special:'dash'},
-  {id:'titan',name:'Titan',desc:'Tanky bruiser',hp:5,spd:.25,fr:280,dmg:2,color:'#f72',unlock:1200,special:'ram'},
-  {id:'spectre',name:'Spectre',desc:'Shield specialist',hp:3,spd:.33,fr:240,dmg:1,color:'#0f9',unlock:2000,special:'autoShield'},
-  {id:'nova',name:'Nova',desc:'Glass cannon',hp:1,spd:.38,fr:140,dmg:3,color:'#ff0',unlock:3500,special:'crit'},
+  {id:'striker',name:'Striker',desc:'Balanced fighter',hp:3,spd:.5,fr:220,dmg:1,color:'#1ae',unlock:0,special:'none'},
+  {id:'phantom',name:'Phantom',desc:'Fast & fragile',hp:2,spd:.65,fr:180,dmg:1,color:'#a5f',unlock:500,special:'dash'},
+  {id:'titan',name:'Titan',desc:'Tanky bruiser',hp:5,spd:.38,fr:280,dmg:2,color:'#f72',unlock:1200,special:'ram'},
+  {id:'spectre',name:'Spectre',desc:'Shield specialist',hp:3,spd:.48,fr:240,dmg:1,color:'#0f9',unlock:2000,special:'autoShield'},
+  {id:'nova',name:'Nova',desc:'Glass cannon',hp:1,spd:.55,fr:140,dmg:3,color:'#ff0',unlock:3500,special:'crit'},
 ];
 
 const UPGRADES=[
@@ -275,7 +280,7 @@ class Player{
   addXP(n){this.xp+=Math.floor(n*this.xpMult);while(this.xp>=this.xpNext){this.xp-=this.xpNext;this.level++;this.xpNext=Math.floor(100*(1.15**this.level));return true;}return false;}
   applyUpgrade(id){const u=UPGRADES.find(u=>u.id===id);if(!u)return;if(id==='sideGuns')this.sideGuns++;else if(id==='rearGun')this.rearGun=1;else if(id==='piercing')this.piercing++;else if(id==='homing')this.homing++;else if(id==='spread')this.spread++;else if(id==='fireRate')this.fireRateBonus++;else if(id==='dmgUp')this.dmgBonus++;else if(id==='orbiters')this.orbiters++;else if(id==='regen')this.regen++;else if(id==='magnet')this.magnet++;else if(id==='xpBoost')this.xpMult+=.3;else if(id==='luck')this.luckMult+=.3;else if(id==='bomb')this.bomb=1;else if(id==='slowField')this.slowField=1;else if(id==='drone')this.drone++;else if(id==='hpUp'){this.hpBonus++;this.maxHp++;this.hp++;}else if(id==='speedUp')this.speedBonus++;else if(id==='critChance')this.critChance+=.15;else if(id==='explode')this.explodeShot=true;else if(id==='shield2')this.autoShield++;}
   update(dt,inp){
-    if(inp.a){this.x+=inp.dx*this.effectiveSpd*dt;this.y+=inp.dy*this.effectiveSpd*dt;}
+    if(inp.a){const s=this.effectiveSpd*(inp.sens||1);this.x+=inp.dx*s*dt;this.y+=inp.dy*s*dt;}
     this.x=Math.max(this.r,Math.min(W-this.r,this.x));this.y=Math.max(this.r,Math.min(H-this.r,this.y));
     if(this.inv){this.invT-=dt*16.67;if(this.invT<=0)this.inv=false;}
     if(this.shield){this.shieldT-=dt*16.67;if(this.shieldT<=0)this.shield=false;}
@@ -424,7 +429,7 @@ class Game{
     // Wave
     this.wave=0;this.eLft=0;this.toSp=0;this.spT=0;this.wvDel=0;this.isBoss=false;this.bossSpd=false;this.zone=0;
     // Mode
-    this.mode='endless';this.bossRushIdx=0;
+    this.mode='endless';this.bossRushIdx=0;this.moveSens=1.5;
     // Stats
     this.kills=0;this.bosses=0;this.maxCombo=1;this.maxStreak=0;this.noHitBoss=true;this.upgCount=0;this.crystalsEarned=0;
     // Progression
@@ -441,11 +446,11 @@ class Game{
 
   async loadData(){
     const d=await this.sdk.load('sb_data');
-    if(d){this.crystals=d.c||0;this.unlockedShips=d.s||['striker'];this.hs=d.h||0;this.earnedAch=d.a||[];}
+    if(d){this.crystals=d.c||0;this.unlockedShips=d.s||['striker'];this.hs=d.h||0;this.earnedAch=d.a||[];this.moveSens=d.ms||1.5;}
     this.refreshMenu();
   }
   async saveData(){
-    await this.sdk.save('sb_data',{c:this.crystals,s:this.unlockedShips,h:this.hs,a:this.earnedAch});
+    await this.sdk.save('sb_data',{c:this.crystals,s:this.unlockedShips,h:this.hs,a:this.earnedAch,ms:this.moveSens});
   }
 
   refreshMenu(){
@@ -460,6 +465,8 @@ class Game{
     // Modes
     const ml=document.getElementById('modeList');ml.innerHTML='';
     [{id:'endless',n:'Endless',d:'Survive waves'},{id:'bossrush',n:'Boss Rush',d:'Bosses only'},{id:'blitz',n:'Blitz',d:'3 min speedrun'}].forEach(m=>{const d=document.createElement('div');d.className='md'+(m.id===this.mode?' sel':'');d.innerHTML=`<div class="mdn">${m.n}</div><div class="mdd">${m.d}</div>`;d.onclick=()=>{this.mode=m.id;this.refreshMenu();};ml.appendChild(d);});
+    // Speed slider
+    const slider=document.getElementById('spdSlider');slider.value=Math.round(this.moveSens*100);document.getElementById('spdVal').textContent=Math.round(this.moveSens*100)+'%';
   }
 
   resize(){const w=window.innerWidth,h=window.innerHeight;this.sc=Math.min(w/W,h/H);this.cv.width=W;this.cv.height=H;this.cv.style.width=(W*this.sc)+'px';this.cv.style.height=(H*this.sc)+'px';this.ox=(w-W*this.sc)/2;this.oy=(h-H*this.sc)/2;this.cv.style.left=this.ox+'px';this.cv.style.top=this.oy+'px';}
@@ -492,6 +499,8 @@ class Game{
     document.getElementById('restartBtn').onclick=()=>{this.aud.unlock();this.startGame();};
     document.getElementById('goMenuBtn').onclick=e=>{e.stopPropagation();this.goMenu();};
     document.getElementById('extraLifeBtn').onclick=async e=>{e.stopPropagation();if(await this.sdk.rewAd()){this.revive();}};
+    document.getElementById('spdSlider').oninput=e=>{this.moveSens=parseInt(e.target.value)/100;document.getElementById('spdVal').textContent=Math.round(this.moveSens*100)+'%';};
+    document.getElementById('spdSlider').onchange=()=>this.saveData();
   }
 
   startGame(){
@@ -565,7 +574,7 @@ class Game{
     // Popups
     for(let i=this.popups.length-1;i>=0;i--){this.popups[i].y-=1.5*dt;this.popups[i].t-=dt*16.67;if(this.popups[i].t<=0)this.popups.splice(i,1);}
     // Player
-    this.pl.update(dt,this.inp);
+    this.inp.sens=this.moveSens;this.pl.update(dt,this.inp);
     if(this.pl.canFire(now)){this.pl.fire(now,this.bul);this.aud.shoot();if(this.pl.drone>0&&now%500<20)this.pl.fireDrones(now,this.bul);}
     // Bomb
     if(this.pl.bomb&&this.pl.bombT<=0){this.pl.bombT=30000;this.aud.bomb();this.shake(10,400);for(const e of this.enemies){e.alive=false;this.addScore(e.score);this.par.emit(e.x,e.y,10,{ms:1,xs:4,l:300,s:5,c:e.color});}this.enemies=[];}
