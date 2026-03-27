@@ -578,7 +578,7 @@ class Game{
     // Spawn
     if(!this.isBoss&&this.toSp>0){this.wvDel-=dt*16.67;if(this.wvDel<=0){this.spT-=dt*16.67;if(this.spT<=0){const t=this.getEType();const x=25+Math.random()*(W-50);this.enemies.push(new Enemy(t,x,-25,this.wave));this.toSp--;this.spT=Math.max(300,1300-this.wave*40);}}}
     // Boss spawn
-    if(this.isBoss&&!this.bossSpd){this.wvDel-=dt*16.67;if(this.wvDel<=0){this.boss=new Boss(this.mode==='bossrush'?this.bossRushIdx++:Math.floor(this.wave/5)-1,this.wave);this.bossSpd=true;}}
+    if(this.isBoss&&!this.bossSpd){this.wvDel-=dt*16.67;if(this.wvDel<=0){let bIdx=this.mode==='bossrush'?this.bossRushIdx++:this.mode==='blitz'?Math.floor(this.wave/3)-1:Math.floor(this.wave/5)-1;this.boss=new Boss(bIdx,this.wave);this.bossSpd=true;}}
     // Next wave
     if(this.eLft<=0&&this.toSp<=0&&!this.boss){
       // Upgrade every 3 waves (or every boss kill)
