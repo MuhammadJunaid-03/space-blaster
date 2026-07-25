@@ -378,16 +378,31 @@ class Player{
     this.lastFire=now;let d=this.dmg;if(this.overchargeShots>0){d*=2;this.overchargeShots--;}
     const effCrit=(this.specialActive&&this.special==='crit')?1.0:this.critChance;
     const isCrit=Math.random()<effCrit;const fd=isCrit?d*3:d;const opts={pierce:this.piercing,explode:this.explodeShot,c:isCrit?'#ff0':'#0ef',ricochet:this.ricochet,laser:this.laserSight};
-    // Main shot
-    bul.fire(this.x,this.y-this.r-6,0,-10,true,fd,opts);
-    // Spread
-    for(let i=1;i<=this.spread;i++){const a=i*.12;bul.fire(this.x,this.y-this.r-4,Math.sin(a)*2,-10,true,fd,opts);bul.fire(this.x,this.y-this.r-4,-Math.sin(a)*2,-10,true,fd,opts);}
-    // Side guns
-    for(let i=0;i<this.sideGuns;i++){bul.fire(this.x-14,this.y-8,-1.5-i*.5,-8,true,fd,opts);bul.fire(this.x+14,this.y-8,1.5+i*.5,-8,true,fd,opts);}
-    // Rear
-    if(this.rearGun)bul.fire(this.x,this.y+this.r+4,0,7,true,fd,opts);
-    // Homing
-    for(let i=0;i<this.homing;i++){bul.fire(this.x+(i%2?10:-10),this.y-this.r,(i%2?.5:-.5),-6,true,fd,{...opts,home:true,c:'#f80'});}
+    
+    let maxReg=5;
+    if(this.shipId==='striker') maxReg=2;
+    else if(this.shipId==='phantom'||this.shipId==='spectre') maxReg=3;
+    
+    let activeReg=0, activeHome=0;
+    for(let i=0;i<bul.p.length;i++){
+      if(bul.p[i].a && bul.p[i].pl){
+        if(bul.p[i].home) activeHome++;
+        else activeReg++;
+      }
+    }
+    
+    if(activeReg < maxReg) {
+      bul.fire(this.x,this.y-this.r-6,0,-10,true,fd,opts);
+      for(let i=1;i<=this.spread;i++){const a=i*.12;bul.fire(this.x,this.y-this.r-4,Math.sin(a)*2,-10,true,fd,opts);bul.fire(this.x,this.y-this.r-4,-Math.sin(a)*2,-10,true,fd,opts);}
+      for(let i=0;i<this.sideGuns;i++){bul.fire(this.x-14,this.y-8,-1.5-i*.5,-8,true,fd,opts);bul.fire(this.x+14,this.y-8,1.5+i*.5,-8,true,fd,opts);}
+      if(this.rearGun)bul.fire(this.x,this.y+this.r+4,0,7,true,fd,opts);
+    }
+    
+    const maxHome = 1 + this.homing;
+    if(activeHome < maxHome) {
+      bul.fire(this.x,this.y-this.r,0,-6,true,fd,{...opts,home:true,c:'#f80'});
+      for(let i=0;i<this.homing;i++){bul.fire(this.x+(i%2?10:-10),this.y-this.r,(i%2?.5:-.5),-6,true,fd,{...opts,home:true,c:'#f80'});}
+    }
   }
   fireDrones(now,bul){if(this.drone<=0)return;for(let i=0;i<this.drone;i++){const a=this.orbAngle+i*(Math.PI*2/this.drone);const dx=Math.cos(a)*50,dy=Math.sin(a)*50;bul.fire(this.x+dx,this.y+dy,0,-9,true,this.dmg,{c:'#8f8'});}}
   takeDmg(aud){if(this.inv)return false;if(this.shield){this.shield=false;aud.shieldHit();return false;}this.hp--;this.inv=true;this.invT=1200;this.killStreak=0;if(this.afterburner)this.afterburnerT=3000;aud.hit();if(this.hp<=0){if(this.supernova){this.supernova=false;this.hp=1;this.inv=true;this.invT=3000;this.shield=true;this.shieldT=5000;this.wantsSupernova=true;}else{this.alive=false;}return true;}return true;}
@@ -805,7 +820,7 @@ class Game{
     this.inp.sens=this.moveSens;this.pl.update(dt,this.inp);
     if(this.pl.canFire(now)){this.pl.fire(now,this.bul);this.aud.shoot();if(this.pl.drone>0&&now%500<20)this.pl.fireDrones(now,this.bul);}
     // Bomb
-    if(this.pl.bomb&&this.pl.bombT<=0){this.pl.bombT=30000;this.aud.bomb();this.shake(10,400);for(const e of this.enemies){e.alive=false;this.addScore(e.score);this.par.emit(e.x,e.y,10,{ms:1,xs:4,l:300,s:5,c:e.color});}this.enemies=[];}
+    if(this.pl.bomb&&this.pl.bombT<=0){this.pl.bombT=30000;this.aud.bomb();this.shake(10,400);for(const e of this.enemies){if(e.alive){this.eLft--;e.alive=false;this.addScore(e.score);this.par.emit(e.x,e.y,10,{ms:1,xs:4,l:300,s:5,c:e.color});}}this.enemies=[];}
     // EMP special
     const isEmp=this.pl.specialActive&&this.pl.special==='emp';
     // Enemies
@@ -936,11 +951,11 @@ class Game{
   drawHUD(c){
     if(!this.pl)return;
     c.save();
-    // Score
-    c.font='bold 20px "Segoe UI",system-ui,sans-serif';c.fillStyle='#fff';c.textAlign='right';c.fillText(this.score.toLocaleString(),W-14,38);
-    if(this.combo>1.2){c.font='bold 12px sans-serif';c.fillStyle='#ff0';c.fillText(`x${this.combo.toFixed(1)}`,W-14,54);}
+    // Score (moved down to avoid pause button)
+    c.font='bold 20px "Segoe UI",system-ui,sans-serif';c.fillStyle='#fff';c.textAlign='right';c.fillText(this.score.toLocaleString(),W-14,68);
+    if(this.combo>1.2){c.font='bold 12px sans-serif';c.fillStyle='#ff0';c.fillText(`x${this.combo.toFixed(1)}`,W-14,84);}
     // Kill streak
-    if(this.pl.killStreak>=5){c.font='bold 11px sans-serif';c.fillStyle='#f80';c.fillText(`🔥 ${this.pl.killStreak} STREAK`,W-14,68);}
+    if(this.pl.killStreak>=5){c.font='bold 11px sans-serif';c.fillStyle='#f80';c.fillText(`🔥 ${this.pl.killStreak} STREAK`,W-14,98);}
     // Wave + Zone
     c.textAlign='left';c.font='bold 11px sans-serif';c.fillStyle='rgba(255,255,255,.4)';c.fillText(`WAVE ${this.wave}`,14,54);
     c.font='9px sans-serif';c.fillStyle=ZONES[this.zone]?.accent||'#fff';c.fillText(ZONES[this.zone]?.name||'',14,66);
