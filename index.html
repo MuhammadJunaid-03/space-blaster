@@ -598,7 +598,7 @@ else if(this.type==='power'){const t=this.t/150;ctx.shadowColor='#0df';ctx.shado
 else if(this.type==='missile'){const t=this.t/150;ctx.shadowColor='#f80';ctx.shadowBlur=12+Math.sin(t)*5;ctx.fillStyle='#f80';ctx.beginPath();ctx.arc(0,0,9,0,Math.PI*2);ctx.fill();ctx.fillStyle='#fff';ctx.font='bold 14px sans-serif';ctx.textAlign='center';ctx.fillText('M',0,5);}
 else if(this.type==='gift'){const t=this.t/200;ctx.rotate(Math.sin(t*0.5)*0.2);ctx.shadowColor='#ff0';ctx.shadowBlur=15+Math.sin(t)*8;const g=ctx.createLinearGradient(-8,-8,8,8);g.addColorStop(0,'#ff4444');g.addColorStop(1,'#990000');ctx.fillStyle=g;ctx.beginPath();ctx.roundRect(-10,-10,20,20,4);ctx.fill();ctx.fillStyle='#ffd700';ctx.fillRect(-3,-10.5,6,21);ctx.fillRect(-10.5,-3,21,6);ctx.beginPath();ctx.ellipse(-5,-12,4,2,Math.PI/4,0,Math.PI*2);ctx.ellipse(5,-12,4,2,-Math.PI/4,0,Math.PI*2);ctx.fill();ctx.fillStyle='#fff';ctx.font='900 14px sans-serif';ctx.textAlign='center';ctx.fillText('?',0,5);}
 ctx.restore();}}
-function tryDrop(x,y,arr,luck){if(Math.random()>.22*luck)return;const r=Math.random();if(r<.20)arr.push(new PU(x,y,'health'));else if(r<.45)arr.push(new PU(x,y,'xp'));else if(r<.65)arr.push(new PU(x,y,'power'));else if(r<.75)arr.push(new PU(x,y,'missile'));else arr.push(new PU(x,y,'crystal'));}
+function tryDrop(x,y,arr,luck){if(Math.random()>.18*luck)return;const r=Math.random();if(r<.20)arr.push(new PU(x,y,'health'));else if(r<.50)arr.push(new PU(x,y,'xp'));else if(r<.60)arr.push(new PU(x,y,'power'));else if(r<.70)arr.push(new PU(x,y,'missile'));else arr.push(new PU(x,y,'crystal'));}
 
 // ═══════════════════════════════════════════════════════════════
 //  MAIN GAME
@@ -741,7 +741,7 @@ class Game{
     this.enemies=[];this.boss=null;this.pus=[];
     this.bul.p.forEach(b=>b.a=false);this.par.p.forEach(p=>p.a=false);
     this.wave=0;this.eLft=0;this.toSp=0;this.spT=0;this.wvDel=0;this.isBoss=false;this.bossSpd=false;this.zone=0;this.bossRushIdx=0;
-    this.giftT=30000; // Gift appears after 30s
+    this.giftT=60000; // Gift appears after 60s
     this.nextWave();
     menu('menuScr',1);menu('overScr',1);menu('pauseScr',1);document.getElementById('pauseBtn').style.display='flex';
     this.sdk.gpStart();this.aud.startMusic();
@@ -914,7 +914,7 @@ class Game{
     // Spawn
     if(!this.isBoss&&this.toSp>0){this.wvDel-=dt*16.67;if(this.wvDel<=0){this.spT-=dt*16.67;if(this.spT<=0){const t=this.getEType();const x=25+Math.random()*(W-50);this.enemies.push(new Enemy(t,x,-25,this.wave));this.toSp--;this.spT=Math.max(200,1300-this.wave*50);}}}
     // Spawn Gift
-    this.giftT-=dt*16.67;if(this.giftT<=0){this.pus.push(new PU(25+Math.random()*(W-50),-20,'gift'));this.giftT=30000+Math.random()*20000;}
+    this.giftT-=dt*16.67;if(this.giftT<=0){this.pus.push(new PU(25+Math.random()*(W-50),-20,'gift'));this.giftT=60000+Math.random()*30000;}
     // Boss spawn
     if(this.isBoss&&!this.bossSpd){this.wvDel-=dt*16.67;if(this.wvDel<=0){let bIdx=this.mode==='bossrush'?this.bossRushIdx++:this.mode==='blitz'?Math.floor(this.wave/3)-1:Math.floor(this.wave/5)-1;this.boss=new Boss(bIdx,this.wave);this.bossSpd=true;}}
     // Next wave
