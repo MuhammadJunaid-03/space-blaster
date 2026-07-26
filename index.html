@@ -294,7 +294,7 @@ function mkStars(){const s=[];const layers=[{n:50,sp:.4,sz:1,op:.2},{n:30,sp:1.2
 class Bullets{
   constructor(n){this.p=[];for(let i=0;i<n;i++)this.p.push({a:false,x:0,y:0,vx:0,vy:0,r:3,d:1,pl:true,c:'#0ef',pierce:0,explode:false,home:false,tx:0,ty:0});}
   fire(x,y,vx,vy,pl,d=1,opts={}){const b=this.p.find(b=>!b.a);if(!b)return;b.a=true;b.x=x;b.y=y;b.vx=vx;b.vy=vy;b.pl=pl;b.d=d;b.r=pl?3:4;b.c=pl?(opts.c||'#0ef'):(opts.c||'#f44');b.pierce=opts.pierce||0;b.explode=opts.explode||false;b.home=opts.home||false;b.ricochet=opts.ricochet||false;b.laser=opts.laser||false;b.tx=opts.tx||0;b.ty=opts.ty||0;}
-  update(dt,enemies,boss){for(const b of this.p){if(!b.a)continue;if(b.home&&b.pl){let best=null,bd=Infinity;const all=[...enemies];if(boss&&boss.alive)all.push(boss);for(const e of all){if(!e.alive)continue;const dx=e.x-b.x,dy=e.y-b.y,d=dx*dx+dy*dy;if(d<bd){bd=d;best=e;}}if(best){const dx=best.x-b.x,dy=best.y-b.y,d=Math.sqrt(dx*dx+dy*dy)||1;b.vx+=(dx/d)*.3*dt;b.vy+=(dy/d)*.3*dt;const spd=Math.sqrt(b.vx*b.vx+b.vy*b.vy);if(spd>8){b.vx=(b.vx/spd)*8;b.vy=(b.vy/spd)*8;}}}
+  update(dt,enemies,boss,px,py){for(const b of this.p){if(!b.a)continue;if(b.home){if(b.pl){let best=null,bd=Infinity;const all=[...enemies];if(boss&&boss.alive)all.push(boss);for(const e of all){if(!e.alive)continue;const dx=e.x-b.x,dy=e.y-b.y,d=dx*dx+dy*dy;if(d<bd){bd=d;best=e;}}if(best){const dx=best.x-b.x,dy=best.y-b.y,d=Math.sqrt(dx*dx+dy*dy)||1;b.vx+=(dx/d)*.3*dt;b.vy+=(dy/d)*.3*dt;const spd=Math.sqrt(b.vx*b.vx+b.vy*b.vy);if(spd>8){b.vx=(b.vx/spd)*8;b.vy=(b.vy/spd)*8;}}}else{if(px!==undefined){const dx=px-b.x,dy=py-b.y,d=Math.sqrt(dx*dx+dy*dy)||1;b.vx+=(dx/d)*.12*dt;b.vy+=(dy/d)*.12*dt;const spd=Math.sqrt(b.vx*b.vx+b.vy*b.vy);if(spd>5){b.vx=(b.vx/spd)*5;b.vy=(b.vy/spd)*5;}}}}
   b.x+=b.vx*dt;b.y+=b.vy*dt;
   if(b.ricochet){if(b.x<0){b.x=0;b.vx*=-1;}else if(b.x>W){b.x=W;b.vx*=-1;}if(b.y<0){b.y=0;b.vy*=-1;}else if(b.y>H){b.a=false;}}
   else if(b.y<-15||b.y>H+15||b.x<-15||b.x>W+15)b.a=false;}}
@@ -481,13 +481,13 @@ class Enemy{
     const spMul=slow?.7:1;const t=this.t/1000;this.hitFlash=Math.max(0,this.hitFlash-dt*16.67);
     if(this.type==='basic')this.y+=this.spd*dt*spMul;
     else if(this.type==='zigzag'){this.x=this.sx+Math.sin(t*3.5)*50;this.y+=this.spd*dt*spMul;}
-    else if(this.type==='tank'){if(this.y<120)this.y+=this.spd*dt*spMul;else{this.x+=Math.sin(t*1.5)*1*dt;if(this.t-this.lf>this.fr){this.lf=this.t;const dx=px-this.x,dy=py-this.y,d=Math.sqrt(dx*dx+dy*dy)||1;bul.fire(this.x,this.y+this.r,(dx/d)*this.bs,(dy/d)*this.bs,false);aud.eShoot();}}}
+    else if(this.type==='tank'){if(this.y<120)this.y+=this.spd*dt*spMul;else{this.x+=Math.sin(t*1.5)*1*dt;if(this.t-this.lf>this.fr){this.lf=this.t;const dx=px-this.x,dy=py-this.y,d=Math.sqrt(dx*dx+dy*dy)||1;const home=Math.random()<0.2;bul.fire(this.x,this.y+this.r,(dx/d)*this.bs,(dy/d)*this.bs,false,1,{home,c:home?'#f80':'#f44'});aud.eShoot();}}}
     else if(this.type==='kamikaze'){const dx=px-this.x,dy=py-this.y,d=Math.sqrt(dx*dx+dy*dy)||1;const acc=1+t*.5;this.x+=(dx/d)*this.spd*acc*dt*spMul*.6;this.y+=(dy/d)*this.spd*acc*dt*spMul*.6;}
     else if(this.type==='splitter')this.y+=this.spd*dt*spMul;
     else if(this.type==='shielded')this.y+=this.spd*dt*spMul;
-    else if(this.type==='sniper'){if(this.y<100)this.y+=this.spd*dt*spMul;else{if(this.t-this.lf>this.fr){this.lf=this.t;const dx=px-this.x,dy=py-this.y,d=Math.sqrt(dx*dx+dy*dy)||1;bul.fire(this.x,this.y,(dx/d)*this.bs,(dy/d)*this.bs,false);aud.eShoot();}}}
+    else if(this.type==='sniper'){if(this.y<100)this.y+=this.spd*dt*spMul;else{if(this.t-this.lf>this.fr){this.lf=this.t;const dx=px-this.x,dy=py-this.y,d=Math.sqrt(dx*dx+dy*dy)||1;const home=Math.random()<0.3;bul.fire(this.x,this.y,(dx/d)*this.bs,(dy/d)*this.bs,false,1,{home,c:home?'#f80':'#f44'});aud.eShoot();}}}
     else if(this.type==='swarm'){const dx=px-this.x,dy=py-this.y,d=Math.sqrt(dx*dx+dy*dy)||1;this.x+=(dx/d)*this.spd*dt*spMul*.4+Math.sin(t*5+this.sx)*1.5*dt;this.y+=this.spd*dt*spMul;}
-    else if(this.type==='hydra_head'){if(this.y<80)this.y+=this.spd*dt*spMul;else{this.x+=Math.sin(t*2)*2*dt;if(this.t-this.lf>this.fr){this.lf=this.t;const dx=px-this.x,dy=py-this.y,d=Math.sqrt(dx*dx+dy*dy)||1;bul.fire(this.x,this.y+this.r,(dx/d)*this.bs,(dy/d)*this.bs,false);aud.eShoot();}}}
+    else if(this.type==='hydra_head'){if(this.y<80)this.y+=this.spd*dt*spMul;else{this.x+=Math.sin(t*2)*2*dt;if(this.t-this.lf>this.fr){this.lf=this.t;const dx=px-this.x,dy=py-this.y,d=Math.sqrt(dx*dx+dy*dy)||1;const home=Math.random()<0.2;bul.fire(this.x,this.y+this.r,(dx/d)*this.bs,(dy/d)*this.bs,false,1,{home,c:home?'#f80':'#f44'});aud.eShoot();}}}
     if(this.y>H+40||this.x<-40||this.x>W+40)this.alive=false;
   }
   takeDmg(d){if(this.shieldHp>0){this.shieldHp-=d;this.hitFlash=100;if(this.shieldHp<=0){const over=-this.shieldHp;this.hp-=over;}return this.hp<=0?(this.alive=false,true):false;}this.hp-=d;this.hitFlash=100;if(this.hp<=0){this.alive=false;return true;}return false;}
@@ -750,8 +750,8 @@ class Game{
   nextWave(){
     this.wave++;this.zone=Math.floor((this.wave-1)/5)%ZONES.length;
     if(this.mode==='bossrush'){this.isBoss=true;this.bossSpd=false;this.toSp=0;this.eLft=1;}
-    else if(this.mode==='blitz'){this.isBoss=this.wave%3===0;this.bossSpd=false;this.toSp=this.isBoss?0:4+this.wave*2;this.eLft=this.isBoss?1:this.toSp;}
-    else{this.isBoss=this.wave%5===0;this.bossSpd=false;this.toSp=this.isBoss?0:5+(this.wave-1)*2;this.eLft=this.isBoss?1:this.toSp;}
+    else if(this.mode==='blitz'){this.isBoss=this.wave%3===0;this.bossSpd=false;this.toSp=this.isBoss?0:4+this.wave*4;this.eLft=this.isBoss?1:this.toSp;}
+    else{this.isBoss=this.wave%5===0;this.bossSpd=false;this.toSp=this.isBoss?0:5+(this.wave-1)*4;this.eLft=this.isBoss?1:this.toSp;}
     this.spT=0;this.wvDel=2000;
     this.wvTxt=this.isBoss?`⚠ BOSS - ${ZONES[this.zone].name}`:`WAVE ${this.wave} - ${ZONES[this.zone].name}`;this.wvTxtT=2200;
   }
@@ -927,7 +927,7 @@ class Game{
       }
     }
     // Bullets
-    this.bul.update(dt,this.enemies,this.boss);
+    this.bul.update(dt,this.enemies,this.boss,this.pl.x,this.pl.y);
     // Power-ups
     for(let i=this.pus.length-1;i>=0;i--){this.pus[i].update(dt,this.pl.magnet,this.pl.x,this.pl.y);if(!this.pus[i].alive)this.pus.splice(i,1);}
     this.par.update(dt);
@@ -1015,10 +1015,10 @@ class Game{
     if(!this.pl)return;
     c.save();
     // Score (moved down to avoid pause button)
-    c.font='bold 20px "Segoe UI",system-ui,sans-serif';c.fillStyle='#fff';c.textAlign='right';c.fillText(this.score.toLocaleString(),W-14,68);
-    if(this.combo>1.2){c.font='bold 12px sans-serif';c.fillStyle='#ff0';c.fillText(`x${this.combo.toFixed(1)}`,W-14,84);}
+    c.font='bold 20px "Segoe UI",system-ui,sans-serif';c.fillStyle='#fff';c.textAlign='right';c.fillText(this.score.toLocaleString(),W-14,100);
+    if(this.combo>1.2){c.font='bold 12px sans-serif';c.fillStyle='#ff0';c.fillText(`x${this.combo.toFixed(1)}`,W-14,116);}
     // Kill streak
-    if(this.pl.killStreak>=5){c.font='bold 11px sans-serif';c.fillStyle='#f80';c.fillText(`🔥 ${this.pl.killStreak} STREAK`,W-14,98);}
+    if(this.pl.killStreak>=5){c.font='bold 11px sans-serif';c.fillStyle='#f80';c.fillText(`🔥 ${this.pl.killStreak} STREAK`,W-14,130);}
     // Wave + Zone
     c.textAlign='left';c.font='bold 11px sans-serif';c.fillStyle='rgba(255,255,255,.4)';c.fillText(`WAVE ${this.wave}`,14,54);
     c.font='9px sans-serif';c.fillStyle=ZONES[this.zone]?.accent||'#fff';c.fillText(ZONES[this.zone]?.name||'',14,66);
