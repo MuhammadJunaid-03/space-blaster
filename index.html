@@ -10,7 +10,9 @@
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{width:100%;height:100%;overflow:hidden;background:#000;touch-action:none;overscroll-behavior:none;user-select:none;-webkit-user-select:none;font-family:'Segoe UI',system-ui,sans-serif}
 canvas{display:block;position:absolute;z-index:1}
-.ov{position:fixed;top:0;left:0;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:10;background:rgba(5,5,20,0.92);color:#fff;text-align:center;transition:opacity .3s}
+.ov{position:fixed;top:0;left:0;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;z-index:10;background:rgba(5,5,20,0.92);color:#fff;text-align:center;transition:opacity .3s;overflow-y:auto;padding:20px 0;touch-action:pan-y}
+.ov::before,.ov::after{content:'';margin:auto}
+.ov > *{flex-shrink:0}
 .ov.h{opacity:0;pointer-events:none}
 .ov h1{font-size:clamp(28px,7vw,48px);font-weight:900;letter-spacing:2px;background:linear-gradient(135deg,#00d4ff,#7b2ff7,#ff2d95);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;filter:drop-shadow(0 0 25px rgba(0,212,255,.5));margin-bottom:4px}
 .ov h2{font-size:clamp(24px,5vw,36px);font-weight:800;color:#fff;text-shadow:0 0 15px rgba(255,255,255,.4);margin-bottom:12px}
@@ -140,21 +142,21 @@ canvas{display:block;position:absolute;z-index:1}
   <button class="b br pulse" id="tutBtn" style="margin-top:20px; font-size:16px; letter-spacing: 2px;">START BATTLE</button>
 </div>
 
-<script src="https://game-cdn.poki.com/scripts/v2/poki-sdk.js"></script>
+<script src="https://sdk.crazygames.com/crazygames-sdk-v3.js"></script>
 <script>
 'use strict';
 // ═══════════════════════════════════════════════════════════════
-//  POKI SDK
+//  CRAZYGAMES SDK
 // ═══════════════════════════════════════════════════════════════
-class PokiWrapper{
-  constructor(){this.ok=false;this.adOn=false;this.lastAd=0;if(typeof PokiSDK!=='undefined'){PokiSDK.init().then(()=>{this.ok=true;PokiSDK.gameLoadingFinished();}).catch(()=>{this.ok=true;PokiSDK.gameLoadingFinished();});}}
-  gpStart(){if(this.ok)try{PokiSDK.gameplayStart();}catch(e){}}
-  gpStop(){if(this.ok)try{PokiSDK.gameplayStop();}catch(e){}}
+class CGWrapper{
+  constructor(){this.ok=false;this.adOn=false;this.lastAd=0;this.p=null;if(window.CrazyGames&&window.CrazyGames.SDK){this.p=window.CrazyGames.SDK.init().then(()=>{this.ok=true;}).catch(()=>{this.ok=true;});}else{this.ok=true;this.p=Promise.resolve();}}
+  gpStart(){if(this.ok&&window.CrazyGames&&window.CrazyGames.SDK)try{window.CrazyGames.SDK.game.gameplayStart();}catch(e){}}
+  gpStop(){if(this.ok&&window.CrazyGames&&window.CrazyGames.SDK)try{window.CrazyGames.SDK.game.gameplayStop();}catch(e){}}
   happy(){}
-  async midAd(){if(!this.ok||this.adOn||Date.now()-this.lastAd<180000)return false;this.adOn=true;this.gpStop();return new Promise(r=>{try{PokiSDK.commercialBreak().then(()=>{this.adOn=false;this.lastAd=Date.now();this.gpStart();r(true);}).catch(()=>{this.adOn=false;this.gpStart();r(false);});}catch(e){this.adOn=false;this.gpStart();r(false);}});}
-  async rewAd(){if(!this.ok||this.adOn)return false;this.adOn=true;this.gpStop();return new Promise(r=>{try{PokiSDK.rewardedBreak().then((s)=>{this.adOn=false;this.lastAd=Date.now();this.gpStart();r(s);}).catch(()=>{this.adOn=false;this.gpStart();r(false);});}catch(e){this.adOn=false;this.gpStart();r(false);}});}
-  async save(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
-  async load(k){try{return JSON.parse(localStorage.getItem(k));}catch(e){return null;}}
+  async midAd(){if(!this.ok||this.adOn||Date.now()-this.lastAd<180000)return false;if(!window.CrazyGames||!window.CrazyGames.SDK)return false;this.adOn=true;this.gpStop();return new Promise(r=>{try{window.CrazyGames.SDK.ad.requestAd('midgame',{adStarted:()=>{},adFinished:()=>{this.adOn=false;this.lastAd=Date.now();this.gpStart();r(true);},adError:()=>{this.adOn=false;this.gpStart();r(false);}});}catch(e){this.adOn=false;this.gpStart();r(false);}});}
+  async rewAd(){if(!this.ok||this.adOn)return false;if(!window.CrazyGames||!window.CrazyGames.SDK)return false;this.adOn=true;this.gpStop();return new Promise(r=>{try{window.CrazyGames.SDK.ad.requestAd('rewarded',{adStarted:()=>{},adFinished:()=>{this.adOn=false;this.lastAd=Date.now();this.gpStart();r(true);},adError:()=>{this.adOn=false;this.gpStart();r(false);}});}catch(e){this.adOn=false;this.gpStart();r(false);}});}
+  async save(k,v){try{if(this.p)await this.p;const s=JSON.stringify(v);if(this.ok&&window.CrazyGames&&window.CrazyGames.SDK&&window.CrazyGames.SDK.data)window.CrazyGames.SDK.data.setItem(k,s);else localStorage.setItem(k,s);}catch(e){}}
+  async load(k){try{if(this.p)await this.p;let s=null;if(this.ok&&window.CrazyGames&&window.CrazyGames.SDK&&window.CrazyGames.SDK.data)s=window.CrazyGames.SDK.data.getItem(k);if(!s)s=localStorage.getItem(k);return s?JSON.parse(s):null;}catch(e){return null;}}
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -606,7 +608,7 @@ function tryDrop(x,y,arr,luck){if(Math.random()>.18*luck)return;const r=Math.ran
 class Game{
   constructor(){
     this.cv=document.getElementById('c');this.cx=this.cv.getContext('2d');
-    this.state='MENU';this.aud=new Audio();this.sdk=new PokiWrapper();
+    this.state='MENU';this.aud=new Audio();this.sdk=new CGWrapper();
     this.par=new PPool();this.bul=new Bullets(300);
     this.pl=null;this.enemies=[];this.boss=null;this.pus=[];
     this.stars=mkStars();this.score=0;this.hs=0;
