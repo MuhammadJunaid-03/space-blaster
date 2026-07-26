@@ -373,6 +373,20 @@ class Player{
   canFire(bul){
     const fr = (this.specialActive&&this.special==='overdrive')?this.effectiveFR/5:this.effectiveFR;
     if(this.t-this.lastFire < fr) return false;
+    
+    let baseVolley = 2;
+    if(this.shipId==='phantom' || this.shipId==='titan') baseVolley = 3;
+    else if(this.shipId==='spectre' || this.shipId==='nova') baseVolley = 5;
+    
+    let totalVolley = baseVolley + (this.spread * 2) + (this.sideGuns * 2) + (this.rearGun ? 1 : 0) + this.homing;
+    if (this.drone > 0) totalVolley += this.drone;
+    
+    let maxAllowed = totalVolley * (this.specialActive && this.special === 'overdrive' ? 4 : 3);
+    if(maxAllowed > 45) maxAllowed = 45;
+    
+    let active = bul.active().filter(b => b.pl).length;
+    if(active >= maxAllowed) return false;
+    
     return true;
   }
   fire(bul){
@@ -397,9 +411,6 @@ class Player{
       bul.fire(this.x-16,this.y-this.r,-2,-13,true,fd,opts);
       bul.fire(this.x+16,this.y-this.r,2,-13,true,fd,opts);
     }
-    
-    // 1 Guided Missile per shot
-    bul.fire(this.x,this.y-this.r,0,-10,true,fd*1.5,{...opts,home:true,c:'#f80',r:4});
     
     // Upgrades
     for(let i=1;i<=this.spread;i++){const a=i*.12;bul.fire(this.x,this.y-this.r-4,Math.sin(a)*4,-11,true,fd,opts);bul.fire(this.x,this.y-this.r-4,-Math.sin(a)*4,-11,true,fd,opts);}
