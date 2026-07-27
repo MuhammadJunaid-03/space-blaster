@@ -142,21 +142,21 @@ canvas{display:block;position:absolute;z-index:1}
   <button class="b br pulse" id="tutBtn" style="margin-top:20px; font-size:16px; letter-spacing: 2px;">START BATTLE</button>
 </div>
 
-<script src="https://sdk.crazygames.com/crazygames-sdk-v3.js"></script>
+<script src="https://game-cdn.poki.com/scripts/v2/poki-sdk.js"></script>
 <script>
 'use strict';
 // ═══════════════════════════════════════════════════════════════
-//  CRAZYGAMES SDK
+//  POKI SDK
 // ═══════════════════════════════════════════════════════════════
 class CGWrapper{
-  constructor(){this.ok=false;this.adOn=false;this.lastAd=0;this.p=null;if(window.CrazyGames&&window.CrazyGames.SDK){this.p=window.CrazyGames.SDK.init().then(()=>{this.ok=true;}).catch(()=>{this.ok=true;});}else{this.ok=true;this.p=Promise.resolve();}}
-  gpStart(){if(this.ok&&window.CrazyGames&&window.CrazyGames.SDK)try{window.CrazyGames.SDK.game.gameplayStart();}catch(e){}}
-  gpStop(){if(this.ok&&window.CrazyGames&&window.CrazyGames.SDK)try{window.CrazyGames.SDK.game.gameplayStop();}catch(e){}}
-  happy(){}
-  async midAd(){if(!this.ok||this.adOn||Date.now()-this.lastAd<180000)return false;if(!window.CrazyGames||!window.CrazyGames.SDK)return false;this.adOn=true;this.gpStop();return new Promise(r=>{try{window.CrazyGames.SDK.ad.requestAd('midgame',{adStarted:()=>{},adFinished:()=>{this.adOn=false;this.lastAd=Date.now();this.gpStart();r(true);},adError:()=>{this.adOn=false;this.gpStart();r(false);}});}catch(e){this.adOn=false;this.gpStart();r(false);}});}
-  async rewAd(){if(!this.ok||this.adOn)return false;if(!window.CrazyGames||!window.CrazyGames.SDK)return false;this.adOn=true;this.gpStop();return new Promise(r=>{try{window.CrazyGames.SDK.ad.requestAd('rewarded',{adStarted:()=>{},adFinished:()=>{this.adOn=false;this.lastAd=Date.now();this.gpStart();r(true);},adError:()=>{this.adOn=false;this.gpStart();r(false);}});}catch(e){this.adOn=false;this.gpStart();r(false);}});}
-  async save(k,v){try{if(this.p)await this.p;const s=JSON.stringify(v);if(this.ok&&window.CrazyGames&&window.CrazyGames.SDK&&window.CrazyGames.SDK.data)window.CrazyGames.SDK.data.setItem(k,s);else localStorage.setItem(k,s);}catch(e){}}
-  async load(k){try{if(this.p)await this.p;let s=null;if(this.ok&&window.CrazyGames&&window.CrazyGames.SDK&&window.CrazyGames.SDK.data)s=window.CrazyGames.SDK.data.getItem(k);if(!s)s=localStorage.getItem(k);return s?JSON.parse(s):null;}catch(e){return null;}}
+  constructor(){this.ok=false;this.adOn=false;this.lastAd=0;this.p=null;if(typeof PokiSDK!=='undefined'){this.p=PokiSDK.init().then(()=>{this.ok=true;PokiSDK.gameLoadingStart();PokiSDK.gameLoadingFinished();}).catch(()=>{this.ok=true;PokiSDK.gameLoadingStart();PokiSDK.gameLoadingFinished();});}else{this.ok=true;this.p=Promise.resolve();}}
+  gpStart(){if(this.ok&&typeof PokiSDK!=='undefined')try{PokiSDK.gameplayStart();}catch(e){}}
+  gpStop(){if(this.ok&&typeof PokiSDK!=='undefined')try{PokiSDK.gameplayStop();}catch(e){}}
+  happy(){if(this.ok&&typeof PokiSDK!=='undefined')try{PokiSDK.happyTime(1.0);}catch(e){}}
+  async midAd(){if(!this.ok||this.adOn||Date.now()-this.lastAd<180000)return false;if(typeof PokiSDK==='undefined')return false;this.adOn=true;this.gpStop();return new Promise(r=>{try{PokiSDK.commercialBreak().then(()=>{this.adOn=false;this.lastAd=Date.now();this.gpStart();r(true);});}catch(e){this.adOn=false;this.gpStart();r(false);}});}
+  async rewAd(){if(!this.ok||this.adOn)return false;if(typeof PokiSDK==='undefined')return false;this.adOn=true;this.gpStop();return new Promise(r=>{try{PokiSDK.rewardedBreak().then(success=>{this.adOn=false;if(success)this.lastAd=Date.now();this.gpStart();r(success);});}catch(e){this.adOn=false;this.gpStart();r(false);}});}
+  async save(k,v){try{if(this.p)await this.p;localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
+  async load(k){try{if(this.p)await this.p;const s=localStorage.getItem(k);return s?JSON.parse(s):null;}catch(e){return null;}}
 }
 
 // ═══════════════════════════════════════════════════════════════
