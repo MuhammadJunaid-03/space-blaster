@@ -852,11 +852,11 @@ class Game{
     document.getElementById('extraLifeBtn').onclick=async e=>{e.stopPropagation();if(await this.sdk.rewAd()){this.revive();}};
     document.getElementById('spdSlider').oninput=e=>{this.moveSens=parseInt(e.target.value)/100;document.getElementById('spdVal').textContent=Math.round(this.moveSens*100)+'%';};
     document.getElementById('spdSlider').onchange=()=>this.saveData();
-    document.getElementById('tryBossBtn').onclick=async()=>{this.aud.unlock();menu('bossPromptScr',1);menu('overScr',1);this.mode='bossrush';await this.sdk.midAd();this.startGame();};
-    document.getElementById('bossPromptScr').addEventListener('touchstart',async e=>{if(e.target.id==='tryBossBtn'){e.preventDefault();this.aud.unlock();menu('bossPromptScr',1);menu('overScr',1);this.mode='bossrush';await this.sdk.midAd();this.startGame();}},{passive:false});
+    document.getElementById('tryBossBtn').onclick=()=>{this.aud.unlock();menu('bossPromptScr',1);menu('overScr',1);this.mode='bossrush';this.startGame();};
+    document.getElementById('bossPromptScr').addEventListener('touchstart',e=>{if(e.target.id==='tryBossBtn'){e.preventDefault();this.aud.unlock();menu('bossPromptScr',1);menu('overScr',1);this.mode='bossrush';this.startGame();}},{passive:false});
     document.getElementById('closeBossPromptBtn').onclick=()=>{menu('bossPromptScr',1);};
-    document.getElementById('tryBlitzBtn').onclick=async()=>{this.aud.unlock();menu('blitzPromptScr',1);menu('overScr',1);this.mode='blitz';await this.sdk.midAd();this.startGame();};
-    document.getElementById('blitzPromptScr').addEventListener('touchstart',async e=>{if(e.target.id==='tryBlitzBtn'){e.preventDefault();this.aud.unlock();menu('blitzPromptScr',1);menu('overScr',1);this.mode='blitz';await this.sdk.midAd();this.startGame();}},{passive:false});
+    document.getElementById('tryBlitzBtn').onclick=()=>{this.aud.unlock();menu('blitzPromptScr',1);menu('overScr',1);this.mode='blitz';this.startGame();};
+    document.getElementById('blitzPromptScr').addEventListener('touchstart',e=>{if(e.target.id==='tryBlitzBtn'){e.preventDefault();this.aud.unlock();menu('blitzPromptScr',1);menu('overScr',1);this.mode='blitz';this.startGame();}},{passive:false});
     document.getElementById('closeBlitzPromptBtn').onclick=()=>{menu('blitzPromptScr',1);};
   }
 
