@@ -423,7 +423,8 @@ class Player{
     let maxAllowed = totalVolley * (this.specialActive && this.special === 'overdrive' ? 4 : 3);
     if(maxAllowed > 45) maxAllowed = 45;
     
-    let active = bul.active().filter(b => b.pl).length;
+    let active = 0;
+    for(let i=0;i<bul.p.length;i++){if(bul.p[i].a&&bul.p[i].pl)active++;}
     if(active >= maxAllowed) return false;
     
     return true;
