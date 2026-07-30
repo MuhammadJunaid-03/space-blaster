@@ -384,7 +384,7 @@ class Player{
     }
     // Joystick input (mobile)
     if(inp.joyDx!==undefined&&(inp.joyDx!==0||inp.joyDy!==0)){
-      const s=curSpd*25;
+      const s=curSpd*10;
       this.x+=inp.joyDx*s*dt;this.y+=inp.joyDy*s*dt;
     }
     // Keyboard input (desktop)
