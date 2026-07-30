@@ -95,6 +95,12 @@ canvas{display:block;position:absolute;z-index:1}
 }
 /* FLASH */
 #flash{position:fixed;top:0;left:0;width:100%;height:100%;background:#fff;z-index:5;opacity:0;pointer-events:none;transition:opacity .1s}
+/* CONTROLS HINT */
+#controlsHint{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:20;background:rgba(5,5,20,0.92);border:1px solid rgba(0,220,255,.3);border-radius:16px;padding:24px 36px;text-align:center;color:#fff;font-family:'Segoe UI',system-ui,sans-serif;pointer-events:none;opacity:0;transition:opacity .4s}
+#controlsHint h3{color:#0df;font-size:18px;margin-bottom:10px;letter-spacing:2px}
+#controlsHint p{font-size:14px;color:rgba(255,255,255,.7);line-height:1.6}
+#controlsHint kbd{display:inline-block;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:5px;padding:2px 8px;font-size:13px;color:#fff;font-family:inherit;margin:0 2px}
+#controlsHint.show{opacity:1}
 </style>
 </head>
 <body>
@@ -103,6 +109,7 @@ canvas{display:block;position:absolute;z-index:1}
 <canvas id="c"></canvas>
 <button id="pauseBtn">⏸</button>
 <div id="adOv"><p class="pulse">Loading...</p></div>
+<div id="controlsHint"><h3>CONTROLS</h3><p>Use <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> or <kbd>↑</kbd><kbd>←</kbd><kbd>↓</kbd><kbd>→</kbd> to move<br><kbd>Space</kbd> to use Special Ability<br><kbd>P</kbd> / <kbd>Esc</kbd> to Pause</p></div>
 
 <!-- UPGRADE PICKER (shown every 3 waves) -->
 <div id="upgPick">
@@ -375,8 +382,13 @@ class Player{
       if(this.special==='dash'){curSpd*=2.5;this.inv=true;this.invT=50;}
       if(this.special==='ram'){curSpd*=1.5;this.inv=true;this.invT=50;}
     }
-    if(inp.a){const s=curSpd*(inp.sens||1);this.x+=inp.dx*s*dt;this.y+=inp.dy*s*dt;}
-    else{
+    // Joystick input (mobile)
+    if(inp.joyDx!==undefined&&(inp.joyDx!==0||inp.joyDy!==0)){
+      const s=curSpd*25;
+      this.x+=inp.joyDx*s*dt;this.y+=inp.joyDy*s*dt;
+    }
+    // Keyboard input (desktop)
+    {
       let kx=0,ky=0;
       if(inp.k['arrowleft']||inp.k['a']) kx-=1;
       if(inp.k['arrowright']||inp.k['d']) kx+=1;
@@ -640,6 +652,11 @@ class Game{
     this.shX=0;this.shY=0;this.shD=0;this.shI=0;
     this.wvTxt='';this.wvTxtT=0;this.sc=1;this.ox=0;this.oy=0;
     this.inp={a:false,dx:0,dy:0,lx:0,ly:0,k:{}};this.lt=0;
+    this.isMobile='ontouchstart' in window||navigator.maxTouchPoints>0;
+    // Joystick state
+    this.joy={active:false,tid:null,cx:0,cy:0,x:0,y:0,dx:0,dy:0};
+    this.specBtn={active:false,tid:null,x:0,y:0,r:30};
+    this.controlsHintT=0;
     this.combo=1;this.comboT=0;this.extraUsed=false;
     this.slowMoT=0;this.achCheckT=0;this.hitPauseT=0;
     // Wave
@@ -716,21 +733,69 @@ class Game{
   gc(cx,cy){return{x:(cx)/this.sc,y:(cy)/this.sc};}
 
   bindInput(){
-    let lastTap=0;
-    const dn=(cx,cy)=>{
-      const now=Date.now();
-      if(now-lastTap<300){if(this.state==='PLAYING'&&this.pl)this.pl.activateSpecial(this.aud);}
-      lastTap=now;
-      const p=this.gc(cx,cy);this.inp.a=true;this.inp.lx=p.x;this.inp.ly=p.y;this.inp.dx=0;this.inp.dy=0;
-    };
-    const mv=(cx,cy)=>{if(!this.inp.a)return;const p=this.gc(cx,cy);this.inp.dx=p.x-this.inp.lx;this.inp.dy=p.y-this.inp.ly;this.inp.lx=p.x;this.inp.ly=p.y;};
-    const up=()=>{this.inp.a=false;this.inp.dx=0;this.inp.dy=0;};
-    this.cv.addEventListener('touchstart',e=>{e.preventDefault();this.aud.unlock();dn(e.touches[0].clientX,e.touches[0].clientY);},{passive:false});
-    this.cv.addEventListener('touchmove',e=>{e.preventDefault();mv(e.touches[0].clientX,e.touches[0].clientY);},{passive:false});
-    this.cv.addEventListener('touchend',e=>{e.preventDefault();up();},{passive:false});
-    this.cv.addEventListener('mousedown',e=>{this.aud.unlock();dn(e.clientX,e.clientY);});
-    this.cv.addEventListener('mousemove',e=>mv(e.clientX,e.clientY));
-    this.cv.addEventListener('mouseup',()=>up());
+    // ─── JOYSTICK CONFIG ───
+    const JOY_R = 50; // joystick base radius
+    const JOY_KNOB = 22; // knob radius
+    const JOY_DEAD = 6; // dead zone in pixels
+
+    // ─── TOUCH INPUT (MOBILE) ───
+    if(this.isMobile){
+      this.cv.addEventListener('touchstart',e=>{
+        e.preventDefault();this.aud.unlock();
+        for(let i=0;i<e.changedTouches.length;i++){
+          const t=e.changedTouches[i];
+          const p=this.gc(t.clientX,t.clientY);
+          // Check if touching special button area
+          const sbx=W-55,sby=H-80;
+          if(Math.hypot(p.x-sbx,p.y-sby)<40){
+            this.specBtn.active=true;this.specBtn.tid=t.identifier;
+            if(this.state==='PLAYING'&&this.pl)this.pl.activateSpecial(this.aud);
+            continue;
+          }
+          // Otherwise it's a joystick touch
+          if(!this.joy.active){
+            this.joy.active=true;this.joy.tid=t.identifier;
+            this.joy.cx=p.x;this.joy.cy=p.y;
+            this.joy.x=p.x;this.joy.y=p.y;
+            this.joy.dx=0;this.joy.dy=0;
+          }
+        }
+      },{passive:false});
+
+      this.cv.addEventListener('touchmove',e=>{
+        e.preventDefault();
+        for(let i=0;i<e.changedTouches.length;i++){
+          const t=e.changedTouches[i];
+          if(t.identifier===this.joy.tid){
+            const p=this.gc(t.clientX,t.clientY);
+            let dx=p.x-this.joy.cx,dy=p.y-this.joy.cy;
+            const dist=Math.sqrt(dx*dx+dy*dy);
+            if(dist>JOY_R){dx=(dx/dist)*JOY_R;dy=(dy/dist)*JOY_R;}
+            this.joy.x=this.joy.cx+dx;this.joy.y=this.joy.cy+dy;
+            if(dist>JOY_DEAD){this.joy.dx=dx/JOY_R;this.joy.dy=dy/JOY_R;}else{this.joy.dx=0;this.joy.dy=0;}
+          }
+        }
+      },{passive:false});
+
+      this.cv.addEventListener('touchend',e=>{
+        e.preventDefault();
+        for(let i=0;i<e.changedTouches.length;i++){
+          const t=e.changedTouches[i];
+          if(t.identifier===this.joy.tid){this.joy.active=false;this.joy.tid=null;this.joy.dx=0;this.joy.dy=0;}
+          if(t.identifier===this.specBtn.tid){this.specBtn.active=false;this.specBtn.tid=null;}
+        }
+      },{passive:false});
+
+      this.cv.addEventListener('touchcancel',e=>{
+        e.preventDefault();
+        this.joy.active=false;this.joy.tid=null;this.joy.dx=0;this.joy.dy=0;
+        this.specBtn.active=false;this.specBtn.tid=null;
+      },{passive:false});
+    } else {
+      // ─── MOUSE/KEYBOARD INPUT (DESKTOP) ───
+      // Mouse is not used for movement on desktop, only keyboard
+    }
+
     window.addEventListener('keydown',e=>{
       this.inp.k[e.key.toLowerCase()]=true;
       if(e.key==='p'||e.key==='P'||e.key==='Escape'){if(this.state==='PLAYING')this.pause();else if(this.state==='PAUSED')this.resume();}
@@ -764,6 +829,8 @@ class Game{
   startGame(){
     this.state='PLAYING';this.score=0;this.combo=1;this.comboT=0;this.extraUsed=false;this.adWvCnt=0;
     this.kills=0;this.bosses=0;this.maxCombo=1;this.maxStreak=0;this.noHitBoss=true;this.upgCount=0;this.crystalsEarned=0;this.popups=[];this.hitPauseT=0;
+    this.joy.active=false;this.joy.dx=0;this.joy.dy=0;
+    if(!this.isMobile){this.controlsHintT=4000;}
     this.pl=new Player(this.selectedShip);
     this.enemies=[];this.boss=null;this.pus=[];
     this.bul.p.forEach(b=>b.a=false);this.par.p.forEach(p=>p.a=false);
@@ -910,7 +977,7 @@ class Game{
     // Popups
     for(let i=this.popups.length-1;i>=0;i--){this.popups[i].y-=1.5*dt;this.popups[i].t-=dt*16.67;if(this.popups[i].t<=0)this.popups.splice(i,1);}
     // Player
-    this.inp.sens=this.moveSens;this.pl.update(dt,this.inp);
+    this.inp.sens=this.moveSens;this.inp.joyDx=this.joy.dx;this.inp.joyDy=this.joy.dy;this.pl.update(dt,this.inp);
     if(this.pl.canFire(this.bul)){if(this.pl.fire(this.bul)){this.aud.shoot();this.par.emit(this.pl.x,this.pl.y-this.pl.r,1,{ms:0,xs:0,l:100,s:15,c:'#ff0'});}if(this.pl.drone>0&&now%500<20)this.pl.fireDrones(this.bul);}
     // Bomb
     if(this.pl.bomb&&this.pl.bombT<=0){this.pl.bombT=30000;this.aud.bomb();this.shake(10,400);for(const e of this.enemies){if(e.alive){this.eLft--;e.alive=false;this.addScore(e.score);this.par.emit(e.x,e.y,10,{ms:1,xs:4,l:300,s:5,c:e.color});}}this.enemies=[];}
@@ -1082,8 +1149,8 @@ class Game{
     if(this.pl.sideGuns){c.fillStyle='#8f8';c.fillText(`SIDE x${this.pl.sideGuns}`,14,py);py+=12;}
     if(this.pl.homing){c.fillStyle='#f80';c.fillText(`HOMING x${this.pl.homing}`,14,py);py+=12;}
     if(this.pl.drone){c.fillStyle='#8f8';c.fillText(`DRONE x${this.pl.drone}`,14,py);py+=12;}
-    // Special
-    if(this.pl.special!=='none'){
+    // Special bar (desktop only, mobile uses button)
+    if(this.pl.special!=='none'&&!this.isMobile){
       const spcW=60,spcH=6,spcX=W/2-spcW/2,spcY=H-30;
       c.fillStyle='rgba(255,255,255,.1)';c.fillRect(spcX,spcY,spcW,spcH);
       let pct=1;
@@ -1092,6 +1159,51 @@ class Game{
       c.fillRect(spcX,spcY,spcW*Math.max(0,pct),spcH);
       c.font='9px sans-serif';c.fillStyle=this.pl.specialT>0?'rgba(255,255,255,.5)':'#fff';
       c.textAlign='center';c.fillText('SPECIAL',W/2,spcY-4);
+    }
+    // ─── MOBILE JOYSTICK ───
+    if(this.isMobile&&this.state==='PLAYING'){
+      // Joystick
+      if(this.joy.active){
+        // Base circle
+        c.beginPath();c.arc(this.joy.cx,this.joy.cy,50,0,Math.PI*2);
+        c.fillStyle='rgba(255,255,255,.06)';c.fill();
+        c.strokeStyle='rgba(0,220,255,.25)';c.lineWidth=2;c.stroke();
+        // Knob
+        c.beginPath();c.arc(this.joy.x,this.joy.y,22,0,Math.PI*2);
+        const jg=c.createRadialGradient(this.joy.x,this.joy.y,0,this.joy.x,this.joy.y,22);
+        jg.addColorStop(0,'rgba(0,220,255,.4)');jg.addColorStop(1,'rgba(0,220,255,.1)');
+        c.fillStyle=jg;c.fill();
+        c.strokeStyle='rgba(0,220,255,.5)';c.lineWidth=1.5;c.stroke();
+      } else {
+        // Show hint: "Touch to move"
+        c.globalAlpha=0.3;c.font='bold 11px sans-serif';c.fillStyle='#fff';c.textAlign='center';
+        c.fillText('Touch & drag to move',W/2,H-40);c.globalAlpha=1;
+      }
+      // Special ability button (bottom-right)
+      const sbx=W-55,sby=H-80,sbr=30;
+      const ready=this.pl.special!=='none'&&this.pl.specialT<=0;
+      c.beginPath();c.arc(sbx,sby,sbr,0,Math.PI*2);
+      if(this.specBtn.active){c.fillStyle='rgba(0,255,150,.25)';}
+      else{c.fillStyle=ready?'rgba(0,255,150,.12)':'rgba(255,255,255,.06)';}
+      c.fill();
+      c.strokeStyle=ready?'rgba(0,255,150,.5)':'rgba(255,255,255,.15)';c.lineWidth=2;c.stroke();
+      // Cooldown arc
+      if(this.pl.special!=='none'&&this.pl.specialT>0){
+        const pct=1-(this.pl.specialT/this.pl.spCD);
+        c.beginPath();c.moveTo(sbx,sby);c.arc(sbx,sby,sbr,-Math.PI/2,-Math.PI/2+pct*Math.PI*2);c.closePath();
+        c.fillStyle='rgba(0,255,150,.15)';c.fill();
+      }
+      c.font='bold 10px sans-serif';c.fillStyle=ready?'#0f9':'rgba(255,255,255,.4)';c.textAlign='center';
+      c.fillText('SPEC',sbx,sby+4);
+    }
+    // ─── DESKTOP CONTROLS HINT ───
+    if(!this.isMobile&&this.controlsHintT>0){
+      this.controlsHintT-=16.67;
+      const a=Math.min(1,this.controlsHintT/500);
+      c.globalAlpha=a*0.85;
+      c.font='bold 13px "Segoe UI",system-ui,sans-serif';c.fillStyle='#0df';c.textAlign='center';
+      c.fillText('WASD / Arrow Keys to move  •  Space = Special  •  P = Pause',W/2,H-35);
+      c.globalAlpha=1;
     }
     // Boss HP
     if(this.boss&&this.boss.alive)this.boss.drawHP(c);
