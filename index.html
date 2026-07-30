@@ -328,12 +328,12 @@ function mkStars(){const s=[];const layers=[{n:50,sp:.4,sz:1,op:.2},{n:30,sp:1.2
 class Bullets{
   constructor(n){this.p=[];for(let i=0;i<n;i++)this.p.push({a:false,x:0,y:0,vx:0,vy:0,r:3,d:1,pl:true,c:'#0ef',pierce:0,explode:false,home:false,tx:0,ty:0});}
   fire(x,y,vx,vy,pl,d=1,opts={}){const b=this.p.find(b=>!b.a);if(!b)return;b.a=true;b.x=x;b.y=y;b.vx=vx;b.vy=vy;b.pl=pl;b.d=d;b.r=pl?3:4;b.c=pl?(opts.c||'#0ef'):(opts.c||'#f44');b.pierce=opts.pierce||0;b.explode=opts.explode||false;b.home=opts.home||false;b.ricochet=opts.ricochet||false;b.laser=opts.laser||false;b.tx=opts.tx||0;b.ty=opts.ty||0;}
-  update(dt,enemies,boss,px,py){for(const b of this.p){if(!b.a)continue;if(b.home){if(b.pl){let best=null,bd=Infinity;const all=[...enemies];if(boss&&boss.alive)all.push(boss);for(const e of all){if(!e.alive)continue;const dx=e.x-b.x,dy=e.y-b.y,d=dx*dx+dy*dy;if(d<bd){bd=d;best=e;}}if(best){const dx=best.x-b.x,dy=best.y-b.y,d=Math.sqrt(dx*dx+dy*dy)||1;b.vx+=(dx/d)*.3*dt;b.vy+=(dy/d)*.3*dt;const spd=Math.sqrt(b.vx*b.vx+b.vy*b.vy);if(spd>8){b.vx=(b.vx/spd)*8;b.vy=(b.vy/spd)*8;}}}else{if(px!==undefined){const dx=px-b.x,dy=py-b.y,d=Math.sqrt(dx*dx+dy*dy)||1;b.vx+=(dx/d)*.12*dt;b.vy+=(dy/d)*.12*dt;const spd=Math.sqrt(b.vx*b.vx+b.vy*b.vy);if(spd>5){b.vx=(b.vx/spd)*5;b.vy=(b.vy/spd)*5;}}}}
+  update(dt,enemies,boss,px,py){for(const b of this.p){if(!b.a)continue;if(b.home){if(b.pl){let best=null,bd=Infinity;for(let i=0;i<enemies.length;i++){const e=enemies[i];if(!e.alive)continue;const dx=e.x-b.x,dy=e.y-b.y,d=dx*dx+dy*dy;if(d<bd){bd=d;best=e;}}if(boss&&boss.alive){const dx=boss.x-b.x,dy=boss.y-b.y,d=dx*dx+dy*dy;if(d<bd){best=boss;}}if(best){const dx=best.x-b.x,dy=best.y-b.y,d=Math.sqrt(dx*dx+dy*dy)||1;b.vx+=(dx/d)*.3*dt;b.vy+=(dy/d)*.3*dt;const spd=Math.sqrt(b.vx*b.vx+b.vy*b.vy);if(spd>8){b.vx=(b.vx/spd)*8;b.vy=(b.vy/spd)*8;}}}else{if(px!==undefined){const dx=px-b.x,dy=py-b.y,d=Math.sqrt(dx*dx+dy*dy)||1;b.vx+=(dx/d)*.12*dt;b.vy+=(dy/d)*.12*dt;const spd=Math.sqrt(b.vx*b.vx+b.vy*b.vy);if(spd>5){b.vx=(b.vx/spd)*5;b.vy=(b.vy/spd)*5;}}}}
   b.x+=b.vx*dt;b.y+=b.vy*dt;
   if(b.ricochet){if(b.x<0){b.x=0;b.vx*=-1;}else if(b.x>W){b.x=W;b.vx*=-1;}if(b.y<0){b.y=0;b.vy*=-1;}else if(b.y>H){b.a=false;}}
   else if(b.y<-15||b.y>H+15||b.x<-15||b.x>W+15)b.a=false;}}
-  draw(ctx){for(const b of this.p){if(!b.a)continue;ctx.save();ctx.shadowColor=b.c;ctx.shadowBlur=b.home?12:8;ctx.fillStyle=b.c;ctx.beginPath();if(b.pl){if(b.home){ctx.arc(b.x,b.y,4,0,Math.PI*2);}else if(b.laser){ctx.roundRect(b.x-1.5,b.y-20,3,40,1.5);}else{ctx.roundRect(b.x-2,b.y-6,4,12,2);}ctx.fill();}else{if(b.laser){ctx.roundRect(b.x-2.5,b.y-20,5,40,2.5);}else{ctx.arc(b.x,b.y,b.r,0,Math.PI*2);}ctx.fill();}ctx.restore();}}
-  active(){return this.p.filter(b=>b.a);}
+  draw(ctx){for(const b of this.p){if(!b.a)continue;ctx.fillStyle=b.c;ctx.beginPath();if(b.pl){if(b.home){ctx.arc(b.x,b.y,4,0,Math.PI*2);}else if(b.laser){ctx.roundRect(b.x-1.5,b.y-20,3,40,1.5);}else{ctx.roundRect(b.x-2,b.y-6,4,12,2);}ctx.fill();}else{if(b.laser){ctx.roundRect(b.x-2.5,b.y-20,5,40,2.5);}else{ctx.arc(b.x,b.y,b.r,0,Math.PI*2);}ctx.fill();}}}
+  active(){return this.p;}
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -531,7 +531,7 @@ class Enemy{
   }
   takeDmg(d){if(this.shieldHp>0){this.shieldHp-=d;this.hitFlash=100;if(this.shieldHp<=0){const over=-this.shieldHp;this.hp-=over;}return this.hp<=0?(this.alive=false,true):false;}this.hp-=d;this.hitFlash=100;if(this.hp<=0){this.alive=false;return true;}return false;}
   draw(ctx){
-    ctx.save();ctx.translate(this.x,this.y);ctx.shadowColor=this.color;ctx.shadowBlur=8;
+    ctx.save();ctx.translate(this.x,this.y);
     ctx.fillStyle=this.hitFlash>0?'#fff':this.color;
     // Different shapes per type
     if(this.type==='basic'){ctx.beginPath();ctx.moveTo(0,16);ctx.lineTo(-12,-10);ctx.lineTo(0,-3);ctx.lineTo(12,-10);ctx.closePath();ctx.fill();}
@@ -629,7 +629,7 @@ class Boss{
 // ═══════════════════════════════════════════════════════════════
 class PU{constructor(x,y,t){this.x=x;this.y=y;this.type=t;this.r=11;this.alive=true;this.t=0;}
 update(dt,mag,px,py){this.t+=dt*16.67;this.y+=1.5*dt;this.x+=Math.sin(this.t/300)*.3;if(mag>0){const dx=px-this.x,dy=py-this.y,d=Math.sqrt(dx*dx+dy*dy);if(d<60+mag*40){this.x+=dx/d*3*dt;this.y+=dy/d*3*dt;}}if(this.y>H+20)this.alive=false;}
-draw(ctx){ctx.save();ctx.translate(this.x,this.y);ctx.shadowBlur=10;
+draw(ctx){ctx.save();ctx.translate(this.x,this.y);
 if(this.type==='health'){ctx.shadowColor='#f44';ctx.fillStyle='#f44';ctx.fillRect(-3,-7,6,14);ctx.fillRect(-7,-3,14,6);}
 else if(this.type==='xp'){ctx.shadowColor='#0ff';ctx.fillStyle='#0ff';ctx.font='bold 16px sans-serif';ctx.textAlign='center';ctx.fillText('★',0,5);}
 else if(this.type==='crystal'){ctx.shadowColor='#a5f';ctx.fillStyle='#a5f';ctx.beginPath();ctx.moveTo(0,-10);ctx.lineTo(7,0);ctx.lineTo(0,10);ctx.lineTo(-7,0);ctx.closePath();ctx.fill();}
@@ -930,7 +930,7 @@ class Game{
 
   shake(i,d){this.shI=i;this.shD=d;}
   addScore(pts){const p=Math.floor(pts*this.combo);this.score+=p;this.combo=Math.min(this.combo+.1,4);if(this.combo>this.maxCombo)this.maxCombo=this.combo;this.comboT=1500;return p;}
-  popup(x,y,txt,c){this.popups.push({x,y,txt,c,t:800});}
+  popup(x,y,txt,c){if(this.popups.length>25)this.popups.shift();this.popups.push({x,y,txt,c,t:600});}
   doFlash(){
     const f=document.getElementById('flash');f.style.opacity='0.6';
     setTimeout(()=>f.style.opacity='0',100);
@@ -1045,9 +1045,8 @@ class Game{
   }
 
   collide(){
-    const act=this.bul.active();
     // Player bullets vs enemies
-    for(const b of act){if(!b.pl||!b.a)continue;
+    for(let i=0;i<this.bul.p.length;i++){const b=this.bul.p[i];if(!b.a||!b.pl)continue;
     for(const e of this.enemies){if(!e.alive)continue;if(ch(b.x,b.y,b.r,e.x,e.y,e.r)){if(b.pierce>0)b.pierce--;else b.a=false;const isCrit=b.d>this.pl.baseDmg+this.pl.dmgBonus;
     this.popup(e.x+(Math.random()*20-10),e.y-10+(Math.random()*20-10),Math.ceil(b.d).toString(),isCrit?'#ff0':'#fff');
     if(isCrit){this.hitPauseT=15;this.shake(4,100);}
@@ -1060,7 +1059,7 @@ class Game{
     // vs boss
     if(b.a&&this.boss&&this.boss.alive){if(ch(b.x,b.y,b.r,this.boss.x,this.boss.y,this.boss.r)){if(b.pierce>0)b.pierce--;else b.a=false;const isCrit=b.d>this.pl.baseDmg+this.pl.dmgBonus;this.popup(b.x+(Math.random()*20-10),b.y-10+(Math.random()*20-10),Math.ceil(b.d).toString(),isCrit?'#ff0':'#fff');if(isCrit){this.hitPauseT=15;this.shake(4,100);}this.boss.takeDmg(b.d);this.par.emit(b.x,b.y,6,{ms:.5,xs:3,l:150,s:4,c:this.boss.color});}}}
     // Enemy bullets + body vs player
-    if(this.pl.alive){for(const b of act){if(b.pl||!b.a)continue;if(ch(b.x,b.y,b.r,this.pl.x,this.pl.y,this.pl.r)){
+    if(this.pl.alive){for(let i=0;i<this.bul.p.length;i++){const b=this.bul.p[i];if(!b.a||b.pl)continue;if(ch(b.x,b.y,b.r,this.pl.x,this.pl.y,this.pl.r)){
       if(this.pl.specialActive&&this.pl.special==='reflect'){
         b.pl=true;b.vy*=-1;b.c='#fff';
       }else{
@@ -1096,7 +1095,8 @@ class Game{
   render(){
     const c=this.cx;c.clearRect(0,0,W,H);
     const z=ZONES[this.zone]||ZONES[0];
-    const bg=c.createLinearGradient(0,0,0,H);bg.addColorStop(0,z.bg1);bg.addColorStop(1,z.bg2);c.fillStyle=bg;c.fillRect(0,0,W,H);
+    if(!this.bgGrad||this.lastZone!==this.zone){this.bgGrad=c.createLinearGradient(0,0,0,H);this.bgGrad.addColorStop(0,z.bg1);this.bgGrad.addColorStop(1,z.bg2);this.lastZone=this.zone;}
+    c.fillStyle=this.bgGrad;c.fillRect(0,0,W,H);
     const isPaused = this.state !== 'PLAYING' && this.state !== 'MENU';
     for(const s of this.stars){
       if(!isPaused){ s.y+=s.sp; if(s.y>H+4){s.y=-4;s.x=Math.random()*W;} }
@@ -1117,13 +1117,10 @@ class Game{
     // Score / Damage popups
     for(const p of this.popups){
       c.globalAlpha=Math.min(1,p.t/300);
-      c.font='bold 16px "Segoe UI",system-ui,sans-serif';
+      c.font='bold 14px "Segoe UI",system-ui,sans-serif';
       c.fillStyle=p.c;
       c.textAlign='center';
-      c.shadowColor=p.c;
-      c.shadowBlur=12;
       c.fillText(p.txt,p.x,p.y);
-      c.shadowBlur=0;
     }
     c.globalAlpha=1;
     c.globalCompositeOperation = 'source-over';
