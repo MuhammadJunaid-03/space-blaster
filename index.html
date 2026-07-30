@@ -487,7 +487,7 @@ class Player{
   }
   fireDrones(bul){if(this.drone<=0)return;for(let i=0;i<this.drone;i++){const a=this.orbAngle+i*(Math.PI*2/this.drone);const dx=Math.cos(a)*50,dy=Math.sin(a)*50;bul.fire(this.x+dx,this.y+dy,0,-9,true,this.dmg,{c:'#8f8'});}}
   takeDmg(aud){if(this.inv)return false;if(this.shield){this.shield=false;aud.shieldHit();return false;}this.hp--;this.inv=true;this.invT=1200;this.killStreak=0;if(this.afterburner)this.afterburnerT=3000;aud.hit();if(this.hp<=0){if(this.supernova){this.supernova=false;this.hp=1;this.inv=true;this.invT=3000;this.shield=true;this.shieldT=5000;this.wantsSupernova=true;}else{this.alive=false;}return true;}return true;}
-  revive(){this.hp=this.maxHp;this.alive=true;this.inv=true;this.invT=3000;this.shield=true;this.shieldT=5000;this.x=W/2;this.y=H-100;this.t=0;}
+  revive(){this.hp=this.maxHp;this.alive=true;this.inv=true;this.invT=3000;this.shield=true;this.shieldT=5000;this.x=W/2;this.y=H-100;this.t=0;this.lastFire=0;}
   draw(ctx){
     if(!this.alive)return;if(this.inv&&Math.floor(this.t/80)%2===0)return;
     ctx.save();ctx.translate(this.x,this.y);
