@@ -184,6 +184,16 @@ canvas{display:block;position:absolute;z-index:1}
   <button class="b" id="closeBossPromptBtn" style="margin-top:10px;">NOT NOW</button>
 </div>
 
+<!-- FIRST FAIL BLITZ PROMPT -->
+<div id="blitzPromptScr" class="ov h" style="background:rgba(5,5,20,0.95);z-index:110;">
+  <h2 style="color:#0df;font-size:clamp(20px,5vw,28px);">TRY BLITZ MODE! ⚡</h2>
+  <p style="margin:14px 0;max-width:300px;font-size:clamp(12px,3.5vw,15px);color:#ddd;line-height:1.5;">
+    Bosses are tough! Try <b>Blitz Mode</b> for a fast-paced 3-minute survival challenge to sharpen your skills!
+  </p>
+  <button class="b br pulse" id="tryBlitzBtn" style="margin-top:15px; font-size:15px; letter-spacing: 1px;">START BLITZ MODE ⚡</button>
+  <button class="b" id="closeBlitzPromptBtn" style="margin-top:10px;">NOT NOW</button>
+</div>
+
 <script src="https://game-cdn.poki.com/scripts/v2/poki-sdk.js"></script>
 <script>
 'use strict';
@@ -669,6 +679,7 @@ class Game{
     this.specBtn={active:false,tid:null,x:0,y:0,r:30};
     this.controlsHintT=0;
     this.hasFailedOnce=false;
+    this.hasFailedBossOnce=false;
     this.combo=1;this.comboT=0;this.extraUsed=false;
     this.slowMoT=0;this.achCheckT=0;this.hitPauseT=0;
     // Wave
@@ -692,12 +703,12 @@ class Game{
   async loadData(){
     const d=await this.sdk.load('sb_data');
     let isFirst=true;
-    if(d){this.crystals=d.c||0;this.unlockedShips=d.s||['striker'];this.hs=d.h||0;this.earnedAch=d.a||[];this.moveSens=d.ms||1.5;this.hasFailedOnce=d.ff||false;isFirst=false;}
+    if(d){this.crystals=d.c||0;this.unlockedShips=d.s||['striker'];this.hs=d.h||0;this.earnedAch=d.a||[];this.moveSens=d.ms||1.5;this.hasFailedOnce=d.ff||false;this.hasFailedBossOnce=d.fb||false;isFirst=false;}
     this.refreshMenu();
     if(isFirst){this.state='TUTORIAL';menu('menuScr',1);menu('tutScr',0);}
   }
   async saveData(){
-    await this.sdk.save('sb_data',{c:this.crystals,s:this.unlockedShips,h:this.hs,a:this.earnedAch,ms:this.moveSens,ff:this.hasFailedOnce});
+    await this.sdk.save('sb_data',{c:this.crystals,s:this.unlockedShips,h:this.hs,a:this.earnedAch,ms:this.moveSens,ff:this.hasFailedOnce,fb:this.hasFailedBossOnce});
   }
 
   getShipSVG(id, color) {
@@ -844,6 +855,9 @@ class Game{
     document.getElementById('tryBossBtn').onclick=()=>{this.aud.unlock();menu('bossPromptScr',1);menu('overScr',1);this.mode='bossrush';this.startGame();};
     document.getElementById('bossPromptScr').addEventListener('touchstart',e=>{if(e.target.id==='tryBossBtn'){e.preventDefault();this.aud.unlock();menu('bossPromptScr',1);menu('overScr',1);this.mode='bossrush';this.startGame();}},{passive:false});
     document.getElementById('closeBossPromptBtn').onclick=()=>{menu('bossPromptScr',1);};
+    document.getElementById('tryBlitzBtn').onclick=()=>{this.aud.unlock();menu('blitzPromptScr',1);menu('overScr',1);this.mode='blitz';this.startGame();};
+    document.getElementById('blitzPromptScr').addEventListener('touchstart',e=>{if(e.target.id==='tryBlitzBtn'){e.preventDefault();this.aud.unlock();menu('blitzPromptScr',1);menu('overScr',1);this.mode='blitz';this.startGame();}},{passive:false});
+    document.getElementById('closeBlitzPromptBtn').onclick=()=>{menu('blitzPromptScr',1);};
   }
 
   startGame(){
@@ -938,7 +952,11 @@ class Game{
     document.getElementById('runStats').innerHTML=`<div class="st"><div class="sv">${this.wave}</div><div class="sl">Waves</div></div><div class="st"><div class="sv">${this.kills}</div><div class="sl">Kills</div></div><div class="st"><div class="sv">${this.bosses}</div><div class="sl">Bosses</div></div><div class="st"><div class="sv">${this.upgCount}</div><div class="sl">Upgrades</div></div>`;
     document.getElementById('extraLifeBtn').style.display=(!this.extraUsed&&this.sdk.ok)?'block':'none';
     menu('overScr',0);document.getElementById('pauseBtn').style.display='none';
-    if(!this.hasFailedOnce){
+    if(this.mode==='bossrush'&&!this.hasFailedBossOnce){
+      this.hasFailedBossOnce=true;
+      await this.saveData();
+      menu('blitzPromptScr',0);
+    }else if(!this.hasFailedOnce){
       this.hasFailedOnce=true;
       await this.saveData();
       menu('bossPromptScr',0);
