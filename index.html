@@ -36,6 +36,8 @@ canvas{display:block;position:absolute;z-index:1}
 .uc{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;padding:0 12px;max-width:420px}
 .ui{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:12px;padding:14px 10px;width:120px;cursor:pointer;transition:all .15s;text-align:center}
 .ui:active,.ui:hover{background:rgba(0,200,255,.12);border-color:#0af;transform:scale(1.03)}
+.ui.highlight{border-color:#0df;background:rgba(0,220,255,.15);box-shadow:0 0 20px rgba(0,220,255,.6);animation:cardPulse 1.2s infinite alternate ease-in-out}
+@keyframes cardPulse{0%{transform:scale(1);box-shadow:0 0 12px rgba(0,220,255,.4)}100%{transform:scale(1.06);border-color:#ff0;box-shadow:0 0 24px rgba(255,220,0,.8)}}
 .ui .ico{font-size:28px;margin-bottom:6px}
 .ui .nm{font-size:12px;font-weight:700;color:#fff;margin-bottom:3px}
 .ui .ds{font-size:10px;color:rgba(255,255,255,.5);line-height:1.3}
@@ -113,7 +115,8 @@ canvas{display:block;position:absolute;z-index:1}
 
 <!-- UPGRADE PICKER (shown every 3 waves) -->
 <div id="upgPick">
-  <h3>CHOOSE AN UPGRADE</h3>
+  <h3 style="margin-bottom:4px">CHOOSE AN UPGRADE</h3>
+  <p style="font-size:12px;color:#0df;margin-bottom:14px;letter-spacing:1px;" class="pulse">👇 TAP ANY CARD TO SELECT 👇</p>
   <div class="uc" id="upgCards"></div>
 </div>
 
@@ -906,16 +909,22 @@ class Game{
     }
     const el=document.getElementById('upgCards');el.innerHTML='';
     const rColors={1:'Common',2:'Rare',3:'Epic',4:'Legendary'};const rC={1:'#aaa',2:'#4af',3:'#a5f',4:'#f80'};
-    for(const u of picks){const d=document.createElement('div');d.className='ui';d.innerHTML=`<div class="ico">${u.ico}</div><div class="nm">${u.name}</div><div class="ds">${u.desc}</div><div class="rr" style="color:${rC[u.rarity]}">${rColors[u.rarity]}</div>`;
-    d.onclick=(e)=>{
-      e.stopPropagation();
-      this.pl.applyUpgrade(u.id);this.upgCount++;this.aud.upgrade();
-      document.getElementById('upgPick').style.display='none';
-      document.getElementById('pauseBtn').style.display='flex';
-      this.doFlash();
-      if(onDone)onDone();else this.checkAdAndNextWave();
-    };
-    el.appendChild(d);}
+    let idx=0;
+    for(const u of picks){
+      const d=document.createElement('div');
+      d.className='ui'+(idx===0?' highlight':'');
+      d.innerHTML=`<div class="ico">${u.ico}</div><div class="nm">${u.name}</div><div class="ds">${u.desc}</div><div class="rr" style="color:${rC[u.rarity]}">${rColors[u.rarity]}</div>${idx===0?'<div style="font-size:9px;color:#ff0;margin-top:4px;font-weight:700;">★ RECOMMENDED</div>':''}`;
+      d.onclick=(e)=>{
+        e.stopPropagation();
+        this.pl.applyUpgrade(u.id);this.upgCount++;this.aud.upgrade();
+        document.getElementById('upgPick').style.display='none';
+        document.getElementById('pauseBtn').style.display='flex';
+        this.doFlash();
+        if(onDone)onDone();else this.checkAdAndNextWave();
+      };
+      el.appendChild(d);
+      idx++;
+    }
     document.getElementById('upgPick').style.display='flex';
   }
 
