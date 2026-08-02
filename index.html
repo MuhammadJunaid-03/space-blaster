@@ -217,11 +217,11 @@ class CGWrapper{
 let W=390,H=844;
 
 const SHIPS=[
-  {id:'striker',name:'Striker',desc:'Balanced fighter',hp:3,spd:.5,fr:220,dmg:1,color:'#1ae',unlock:0,special:'emp'},
-  {id:'phantom',name:'Phantom',desc:'Fast & fragile',hp:2,spd:.65,fr:180,dmg:1,color:'#a5f',unlock:500,special:'dash'},
-  {id:'titan',name:'Titan',desc:'Tanky bruiser',hp:5,spd:.38,fr:280,dmg:2,color:'#f72',unlock:1200,special:'ram'},
-  {id:'spectre',name:'Spectre',desc:'Shield specialist',hp:3,spd:.48,fr:240,dmg:1,color:'#0f9',unlock:2000,special:'reflect'},
-  {id:'nova',name:'Nova',desc:'Glass cannon',hp:1,spd:.55,fr:140,dmg:3,color:'#ff0',unlock:3500,special:'overdrive'},
+  {id:'striker',name:'Striker',desc:'Balanced fighter',hp:4,spd:.55,fr:220,dmg:1,color:'#1ae',unlock:0,special:'emp'},
+  {id:'phantom',name:'Phantom',desc:'Fast & fragile',hp:3,spd:.65,fr:180,dmg:1,color:'#a5f',unlock:500,special:'dash'},
+  {id:'titan',name:'Titan',desc:'Tanky bruiser',hp:6,spd:.42,fr:280,dmg:2,color:'#f72',unlock:1200,special:'ram'},
+  {id:'spectre',name:'Spectre',desc:'Shield specialist',hp:4,spd:.48,fr:240,dmg:1,color:'#0f9',unlock:2000,special:'reflect'},
+  {id:'nova',name:'Nova',desc:'Glass cannon',hp:2,spd:.55,fr:140,dmg:3,color:'#ff0',unlock:3500,special:'overdrive'},
 ];
 
 const UPGRADES=[
@@ -366,13 +366,13 @@ class Player{
   // NEW Upgrades
   this.blackHole=0;this.blackHoleT=0;this.chainLight=false;this.phaseShift=0;this.phaseShiftT=0;this.ricochet=false;this.supernova=false;this.laserSight=false;this.decoy=0;this.decoyT=0;this.freezePulse=0;this.freezePulseT=0;this.afterburner=0;this.afterburnerT=0;this.overcharge=0;this.overchargeT=0;this.overchargeShots=0;this.wantsSupernova=false;
   // XP + Special
-  this.xp=0;this.level=0;this.xpNext=100;this.orbAngle=0;this.killStreak=0;this.streakT=0;
-  this.spCD=10000;this.specialT=0;this.specialActive=false;this.specialDur=0;
+  this.xp=0;this.level=0;this.xpNext=40;this.orbAngle=0;this.killStreak=0;this.streakT=0;
+  this.spCD=10000;this.specialT=0;this.specialActive=false;this.specialDur=0;this.earlyRevived=false;
   }
   get dmg(){return this.baseDmg+this.dmgBonus;}
   get effectiveFR(){return Math.max(60,this.fr*(1-this.fireRateBonus*.15));}
   get effectiveSpd(){return this.spd*(1+this.speedBonus*.12);}
-  addXP(n){this.xp+=Math.floor(n*this.xpMult);while(this.xp>=this.xpNext){this.xp-=this.xpNext;this.level++;this.xpNext=Math.floor(100*(1.15**this.level));this.dmgBonus+=0.5;if(this.level%3===0)this.spread=Math.min(this.spread+1,5);if(this.level%5===0)this.sideGuns=Math.min(this.sideGuns+1,4);return true;}return false;}
+  addXP(n){this.xp+=Math.floor(n*this.xpMult);while(this.xp>=this.xpNext){this.xp-=this.xpNext;this.level++;this.xpNext=Math.floor(40*(1.18**this.level));this.hp=Math.min(this.hp+1,this.maxHp);this.dmgBonus+=0.5;if(this.level%3===0)this.spread=Math.min(this.spread+1,5);if(this.level%5===0)this.sideGuns=Math.min(this.sideGuns+1,4);return true;}return false;}
   applyUpgrade(id){const u=UPGRADES.find(u=>u.id===id);if(!u)return;if(id==='sideGuns')this.sideGuns++;else if(id==='rearGun')this.rearGun=1;else if(id==='piercing')this.piercing++;else if(id==='homing')this.homing++;else if(id==='spread')this.spread++;else if(id==='fireRate')this.fireRateBonus++;else if(id==='dmgUp')this.dmgBonus++;else if(id==='orbiters')this.orbiters++;else if(id==='regen')this.regen++;else if(id==='magnet')this.magnet++;else if(id==='xpBoost')this.xpMult+=.3;else if(id==='luck')this.luckMult+=.3;else if(id==='bomb')this.bomb=1;else if(id==='slowField')this.slowField=1;else if(id==='drone')this.drone++;else if(id==='hpUp'){this.hpBonus++;this.maxHp++;this.hp++;}else if(id==='speedUp')this.speedBonus++;else if(id==='critChance')this.critChance+=.15;else if(id==='explode')this.explodeShot=true;else if(id==='shield2')this.autoShield++;else if(id==='blackHole')this.blackHole=1;else if(id==='chainLight')this.chainLight=true;else if(id==='phaseShift')this.phaseShift=1;else if(id==='ricochet')this.ricochet=true;else if(id==='supernova')this.supernova=true;else if(id==='laserSight')this.laserSight=true;else if(id==='decoy')this.decoy++;else if(id==='freezePulse')this.freezePulse=1;else if(id==='afterburner')this.afterburner=1;else if(id==='overcharge')this.overcharge=1;}
   activateSpecial(aud){
     if(this.special==='none'||this.specialT>0||!this.alive)return;
@@ -486,7 +486,7 @@ class Player{
     return true;
   }
   fireDrones(bul){if(this.drone<=0)return;for(let i=0;i<this.drone;i++){const a=this.orbAngle+i*(Math.PI*2/this.drone);const dx=Math.cos(a)*50,dy=Math.sin(a)*50;bul.fire(this.x+dx,this.y+dy,0,-9,true,this.dmg,{c:'#8f8'});}}
-  takeDmg(aud){if(this.inv)return false;if(this.shield){this.shield=false;aud.shieldHit();return false;}this.hp--;this.inv=true;this.invT=1200;this.killStreak=0;if(this.afterburner)this.afterburnerT=3000;aud.hit();if(this.hp<=0){if(this.supernova){this.supernova=false;this.hp=1;this.inv=true;this.invT=3000;this.shield=true;this.shieldT=5000;this.wantsSupernova=true;}else{this.alive=false;}return true;}return true;}
+  takeDmg(aud){if(this.inv)return false;if(this.shield){this.shield=false;aud.shieldHit();return false;}this.hp--;this.inv=true;this.invT=1200;this.killStreak=0;if(this.afterburner)this.afterburnerT=3000;aud.hit();if(this.hp<=0){if(this.supernova){this.supernova=false;this.hp=1;this.inv=true;this.invT=3000;this.shield=true;this.shieldT=5000;this.wantsSupernova=true;}else if(!this.earlyRevived){this.earlyRevived=true;this.hp=2;this.inv=true;this.invT=4000;this.shield=true;this.shieldT=5000;aud.powerUp();return false;}else{this.alive=false;}return true;}return true;}
   revive(){this.hp=this.maxHp;this.alive=true;this.inv=true;this.invT=3000;this.shield=true;this.shieldT=5000;this.x=W/2;this.y=H-100;this.t=0;this.lastFire=0;}
   draw(ctx){
     if(!this.alive)return;if(this.inv&&Math.floor(this.t/80)%2===0)return;
@@ -869,10 +869,11 @@ class Game{
     this.enemies=[];this.boss=null;this.pus=[];
     this.bul.p.forEach(b=>b.a=false);this.par.p.forEach(p=>p.a=false);
     this.wave=0;this.eLft=0;this.toSp=0;this.spT=0;this.wvDel=0;this.isBoss=false;this.bossSpd=false;this.zone=0;this.bossRushIdx=0;
-    this.giftT=60000; // Gift appears after 60s
+    this.giftT=60000;
     this.nextWave();
     menu('menuScr',1);menu('overScr',1);menu('pauseScr',1);document.getElementById('pauseBtn').style.display='flex';
     this.sdk.gpStart();this.aud.startMusic();
+    this.pus.push(new PU(W/2,120,'power'));
   }
 
   nextWave(){
@@ -889,6 +890,8 @@ class Game{
   getAvailableUpgrades(){return UPGRADES.filter(u=>{let cur=0;if(u.id==='sideGuns')cur=this.pl.sideGuns;else if(u.id==='rearGun')cur=this.pl.rearGun;else if(u.id==='piercing')cur=this.pl.piercing;else if(u.id==='homing')cur=this.pl.homing;else if(u.id==='spread')cur=this.pl.spread;else if(u.id==='fireRate')cur=this.pl.fireRateBonus;else if(u.id==='dmgUp')cur=this.pl.dmgBonus;else if(u.id==='orbiters')cur=this.pl.orbiters;else if(u.id==='regen')cur=this.pl.regen;else if(u.id==='magnet')cur=this.pl.magnet;else if(u.id==='xpBoost')cur=Math.round((this.pl.xpMult-1)/.3);else if(u.id==='luck')cur=Math.round((this.pl.luckMult-1)/.3);else if(u.id==='bomb')cur=this.pl.bomb;else if(u.id==='slowField')cur=this.pl.slowField;else if(u.id==='drone')cur=this.pl.drone;else if(u.id==='hpUp')cur=this.pl.hpBonus;else if(u.id==='speedUp')cur=this.pl.speedBonus;else if(u.id==='critChance')cur=Math.round(this.pl.critChance/.15);else if(u.id==='explode')cur=this.pl.explodeShot?1:0;else if(u.id==='shield2')cur=this.pl.autoShield;return cur<u.max;});}
 
   showUpgradePicker(onDone){
+    this.upgCount++;
+    if(this.pl)this.pl.hp=Math.min(this.pl.hp+1,this.pl.maxHp);
     this.inp.a = false;
     this.state='UPGRADE';this.sdk.gpStop();if(this.aud.on)this.aud.stopMusic();
     document.getElementById('pauseBtn').style.display='none';
